@@ -1,72 +1,49 @@
 import sys
 import requests
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QTableWidget, QTableWidgetItem
-from xml.etree import ElementTree as ET
+from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
-class MainWindow(QMainWindow):
+
+class WebBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("QTableWidget Demo")
+        self.setWindowTitle("Web Browser")
         self.setGeometry(100, 100, 600, 400)
 
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
+        self.url_input = QLineEdit(self)
+        self.url_input.setPlaceholderText("Enter URL here")
+        self.url_input.returnPressed.connect(self.load_url)
+
+        self.load_button = QPushButton("Load", self)
+        self.load_button.clicked.connect(self.load_url)
+
+        self.content_label = QLabel(self)
+        self.content_label.setWordWrap(True)
 
         layout = QVBoxLayout()
-        central_widget.setLayout(layout)
+        layout.addWidget(self.url_input)
+        layout.addWidget(self.load_button)
+        layout.addWidget(self.content_label)
 
-        self.table_widget = QTableWidget()
-        self.table_widget.setColumnCount(1)  # Single column for <ToolLife> values
-        self.table_widget.setHorizontalHeaderLabels(["ToolLife"])
-        layout.addWidget(self.table_widget)
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
 
-        button = QPushButton("Populate Table")
-        button.clicked.connect(self.populate_table)
-        layout.addWidget(button)
-
-    def fetch_data_from_url(self, url):
+    def load_url(self):
+        url = self.url_input.text()
         try:
             response = requests.get(url)
-            if response.status_code == 200:
-                return response.content
-            else:
-                print(f"Failed to fetch data from URL: {url}")
-        except requests.RequestException as e:
-            print(f"Error fetching data: {e}")
+            response.raise_for_status()  # Check for HTTP errors
+            content = response.text
+            self.content_label.setText(content)
+        except requests.exceptions.RequestException as e:
+            self.content_label.setText(f"Error loading URL: {str(e)}")
 
-    def parse_xml_data(self, data):
-        try:
-            root = ET.fromstring(data)
-            ns_mapping = {
-                "m": "urn:mtconnect.org:MTConnectAssets:1.3",
-                "x": "urn:okuma.com:OkumaToolAssets:1.3"
-            }
-            m_namespace = ns_mapping.get("m")
-            tool_life_values = root.findall(f".//{{{m_namespace}}}ToolLife")
-            return [tl.text.strip() for tl in tool_life_values]
-        except ET.ParseError as e:
-            print(f"Error parsing XML data: {e}")
-            return []
-
-    def populate_table(self):
-        url = "https://static.staticsave.com/testingforcam/assets.xml"
-        data = self.fetch_data_from_url(url)
-        if data:
-            tool_life_values = self.parse_xml_data(data)
-            self.table_widget.setRowCount(len(tool_life_values))
-
-            for i, value in enumerate(tool_life_values):
-                item = QTableWidgetItem(value)
-                self.table_widget.setItem(i, 0, item)
-
-    # ... (Rest of the class remains unchanged)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+    browser = WebBrowser()
+    browser.show()
     sys.exit(app.exec())
