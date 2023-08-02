@@ -2,135 +2,109 @@ import logging, requests
 from xml.etree import ElementTree as ET
 from machines import Machines
 
+
 class XMLTagExtractor:
-    def __init__(self, addresses, user_tags, user_attributes=None, get_content=False):
+    def __init__(self, addresses=None, user_tags=None, user_attributes=None, get_content=False):
         self.addresses = addresses if isinstance(addresses, list) else [addresses]
         self.user_tags = user_tags
         self.user_attributes = user_attributes
         self.get_content = get_content
         self.machines = []
 
-        # self.namespace_mappings = {
-        #     "https://static.staticsave.com/testingforcam/assets2.xml": {
-        #         "m": "urn:mtconnect.org:MTConnectAssets:1.3",
-        #         "x": "urn:okuma.com:OkumaToolAssets:1.3"
-        #     },
-        #     "https://static.staticsave.com/testingforcam/assets.xml": {
-        #         "m": "urn:mtconnect.org:MTConnectAssets:1.3",
-        #         "x": "urn:okuma.com:OkumaToolAssets:1.3"
-        #     },
-        #     f"http://{addresses}:5000/assets": {
-        #         "m": "urn:mtconnect.org:MTConnectAssets:1.3",
-        #         "x": "urn:okuma.com:OkumaToolAssets:1.3"
-        #     },
-        #     # Add more mappings for other addresses if needed
-        # }
-        
-        # Define the namespace mappings for the common namespaces
-        common_namespace_mapping = {
-            "m": "urn:mtconnect.org:MTConnectAssets:1.3",
-            "x": "urn:okuma.com:OkumaToolAssets:1.3"
-        }
-
-        # Create a separate namespace mapping for the addresses with a single IP
-        single_ip_mapping = {}
-        for address in self.addresses:
-            single_ip_mapping[f"http:/{address}:5000/assets"] = common_namespace_mapping
-
-        # Combine the two namespace mappings
-        self.namespace_mappings = {
-            "https://static.staticsave.com/testingforcam/assets2.xml": common_namespace_mapping,
-            "https://static.staticsave.com/testingforcam/assets.xml": common_namespace_mapping,
-            **single_ip_mapping
-            # Add more mappings for other addresses if needed
-        }
-
         self.logger = logging.getLogger(__name__)
-        
+
         # VALUES STORED HERE. INDICES FOR EACH LIST REPRESENT ONE CUTTING TOOL
         self.toolNums = []
         self.toolLives = []
         self.toolInits = []
-
-    def extract_xml_tag_content(self):
-        count = 0
-        for address in self.addresses:
-            # Clear the lists before processing each address
-            self.toolNums.clear()
-            self.toolLives.clear()
-            self.toolInits.clear()
-
-            self.process_address(address)
-            new_machine = Machines(count + 1, self.toolNums, self.toolLives, self.toolInits)
-            self.machines.append(new_machine)
-            count += 1  # Increment the count for the next machine ID
-
-        for machine in self.machines:
-            self.logger.info(machine)
-
-    def process_address(self, address):
-        # url = f"http://{address}:5000/assets"
+        
+    def get_xml(self, url):
         try:
-            # Set the custom User-Agent header in the request
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-            }
-            response = requests.get(address)
-            # response = requests.get(url, headers=headers)
-            if response.status_code != 200:
-                self.logger.error(f"Failed to retrieve data from address '{address}'")
-                return
-
-            content = response.content.decode("utf-8")
-            root = ET.fromstring(content)
-
-            if address in self.namespace_mappings:
-                namespaces = self.namespace_mappings[address]
+            response = requests.get(url)
+            if response.status_code == 200:
+                xml_content = response.content.decode('utf-8')
+                print(xml_content)
+                print("XML file was fetched and displayed.")
+                return xml_content
             else:
-                self.logger.error(f"No namespace mapping found for address '{address}'")
-                return
-
-            self.process_user_tags(root, namespaces)
-
-        except requests.RequestException as e:
-            self.logger.error(f"Failed to retrieve data from address '{address}'")
-            self.logger.exception(e)
-
-    def process_user_tags(self, root, namespaces):
-        for tag in self.user_tags:
-            target_tags = root.findall(f".//m:{tag}", namespaces)
-            self.logger.info(f"Target Tag: <{tag}>")
+                print(f"Failed to fetch XML. Status code: {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
             
-            if not target_tags:
-                self.logger.info('Target not found')
-                continue
-            
-            self.logger.info("Target(s) exist")
-            for t in target_tags:
-                self.logger.info(f"Target: <{tag}>")
-                if self.user_attributes:
-                    self.process_user_attributes(t)
-                    
-                if self.get_content:
-                    content = t.text
-                    if content:
-                        extracted_content = content.strip()
-                        self.logger.info(f"Content: {extracted_content}")
-                        self.store_tool_data(tag, extracted_content)
+    def retrieve_cutting_tool_info(self, xml_string, id):
+        # Parse the XML string
+        root = ET.fromstring(xml_string)
 
-    def process_user_attributes(self, tag):
-        for attribute in self.user_attributes:
-            if attribute in tag.attrib:
-                self.logger.info(f"Attribute {attribute}: {tag.attrib[attribute]}")
-                self.store_tool_att(attribute, tag.attrib[attribute])
-                
-    def store_tool_data(self, tag, content):
-        if tag == "ProgramToolNumber":
-            self.toolNums.append(str(content))
-        if tag == "ToolLife":
-            self.toolLives.append(str(content))
-            
-    def store_tool_att(self, att, content):
-        if att == "initial":
-            self.toolInits.append(str(content))
+        # Find all CuttingTool elements
+        cutting_tools = root.findall('.//{urn:mtconnect.org:MTConnectAssets:1.3}CuttingTool')
 
+        # Loop through each CuttingTool and retrieve the required information
+        count = 0
+        new_machine = Machines()
+        for cutting_tool in cutting_tools:
+            print("---------------------------")
+            
+            print(f"CuttingTool: {cutting_tool.attrib.get('serialNumber', 'N/A')}")
+            
+            # Check if the ToolLife element exists and retrieve its text
+            tool_life_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ToolLife')
+            tool_life = tool_life_element.text if tool_life_element is not None else 'N/A'
+            print(f"ToolLife: {tool_life}")
+
+            # Check if the ToolLife element has 'initial' attribute and retrieve it
+            initial_life = tool_life_element.attrib.get('initial', 'N/A') if tool_life_element is not None else 'N/A'
+            print(f"Initial ToolLife: {initial_life}")
+
+            # Check if the ProgramToolNumber element exists and retrieve its text
+            program_tool_number_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ProgramToolNumber')
+            program_tool_number = program_tool_number_element.text if program_tool_number_element is not None else 'N/A'
+            print(f"ProgramToolNumber: {program_tool_number}")
+            
+            self.toolLives.append(tool_life)
+            self.toolNums.append(program_tool_number)
+            self.toolInits.append(initial_life)
+            
+            print("---------------------------")
+            count += 1
+        new_machine.id = id
+        new_machine.toolLife = self.toolLives
+        new_machine.toolNum = self.toolNums
+        new_machine.initial = self.toolInits
+        self.machines.append(new_machine)
+        
+        self.toolLives = []
+        self.toolNums = []
+        self.toolInits = []
+        
+        print("---------------------------")
+        print(f"Tools Analyzed: {count}")
+        print("---------------------------")
+
+    def fetch_data(self, address_list, port, id):
+        self.machines = []  # Clear the machines list before processing new data
+
+        count = 0
+        for address in address_list:
+            self.toolNums = []  # Clear the toolNums list before processing data for a new machine
+            self.toolLives = []  # Clear the toolLives list before processing data for a new machine
+            self.toolInits = []  # Clear the toolInits list before processing data for a new machine
+
+            url = f"http://{address}:{port}/sample-files"
+            self.retrieve_cutting_tool_info(self.get_xml(url), id)  # Pass the XML content to the method
+            id += 1
+            count += 1
+            
+        print("---------------------------")
+        print(f"Machines analyzed: {count}")
+        print("---------------------------")
+        
+        for machine in self.machines:
+            print(machine)
+
+if __name__ == "__main__":
+    extractor = XMLTagExtractor()
+    list = ["192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248"]
+    extractor.fetch_data(list, "8000", 1)

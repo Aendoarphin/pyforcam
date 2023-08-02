@@ -11,7 +11,7 @@ class Ui_Dialog(QtCore.QObject):
         self.full_address = ""
         self.full_address_list = []
         
-        self.percentage = ""
+        self.percentage = .3
         self.interval = 5
         self.color = ""
         self.data = {}

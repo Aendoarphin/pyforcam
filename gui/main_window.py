@@ -3,23 +3,27 @@ from gui.settings_window import Ui_Dialog
 from XML import XMLTagExtractor
 from utils.logging import configure_logging
 from utils.stylesheet import styles_main
-import traceback
 
 class Ui_mainWindow(QtCore.QObject):
     def __init__(self):
         super().__init__()
+        # XML Extractor object
+        self.extractor = XMLTagExtractor()
+        
         self.settings_window = QtWidgets.QDialog()
         self.ui_settings = Ui_Dialog()
         self.ui_settings.setupUi(self.settings_window)
-        self.extracted_data = {}
-        self.table_headers = ["Tool No.", "Machine", "Life Remaining", "State"]
-        self.table_data = {}
+        self.url_list = []
         self.machines = []
+        
         # Create a QTimer instance
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.fetch_data_continuously)
+        
         # Flag to indicate whether the data has been fetched
         self.data_fetched = False
+        
+        # Loading element for gui
         self.loading_dots = 0
         self.interval = 0
         self.loading_animation_running = False  # Add a flag to track the loading animation state
@@ -28,14 +32,14 @@ class Ui_mainWindow(QtCore.QObject):
         self.actionOptions.triggered.connect(self.open_settings)
         self.btnStart.clicked.connect(self.start_fetching_data)
         self.btnStop.clicked.connect(self.stop_fetching_data)
-        self.timer.start(2000)  # Start the timer initially
+        self.timer.start(1000)  # Start the timer initially
         
     def start_loading(self):
         if not self.loading_animation_running:  # Check if the animation is not already running
             # Create a QTimer instance for the animation
             self.loading_timer = QtCore.QTimer(self)
             self.loading_timer.timeout.connect(self.update_loading)
-            # Start the timer with an interval of 500 milliseconds (adjust as needed)
+            # Start the timer with an interval of x milliseconds (adjust as needed)
             self.loading_timer.start(300)
             self.loading_animation_running = True  # Set the flag to indicate that the animation is running
 
@@ -44,15 +48,6 @@ class Ui_mainWindow(QtCore.QObject):
             self.loading_timer.stop()
             self.notify("")  # Set the label to an empty string to clear the "Running..." message
             self.loading_animation_running = False  # Set the flag to indicate that the animation is not running
-
-    def stop_fetching_data(self):
-        if self.data_fetched:
-            # Stop the timer
-            self.timer.stop()
-            # Set the data_fetched flag to False after stopping the timer
-            self.data_fetched = False
-            self.stop_loading()  # Stop the loading dots animation
-            self.notify("Operation terminated")
 
     def update_loading(self):
         # Increment the number of dots in the animation
@@ -67,48 +62,62 @@ class Ui_mainWindow(QtCore.QObject):
     
     def start_fetching_data(self):
         if not self.data_fetched:
-            # Start the timer to call fetch_data every 5 seconds
-            self.timer.start(2000)
+            # Start the timer to call fetch_data every 60 seconds
+            self.timer.start(1000)
             # Set the data_fetched flag to True after starting the timer
             self.data_fetched = True
             self.notify("Operation initiated")
+            
+    def stop_fetching_data(self):
+        if self.data_fetched:
+            # Stop the timer
+            self.timer.stop()
+            # Set the data_fetched flag to False after stopping the timer
+            self.data_fetched = False
+            self.stop_loading()  # Stop the loading dots animation
+            self.notify("Operation terminated")
 
     def fetch_data_continuously(self):
         if self.data_fetched:
             # Call the fetch_data method with the appropriate mode
             self.start_loading()  # Start the loading dots animation
-            self.fetch_data("test")  # You can modify the mode as needed
+            self.fetch_data()  # You can modify the mode as needed
         
     def closeEvent(self, event):
         # Override the closeEvent to stop the timer when the window is closed
         self.stop_fetching_data()
         event.accept()
 
-    def fetch_data(self, mode=None):
+    def fetch_data(self):
         configure_logging()
-
-        if mode == "test":
-            print("TESTING STARTED")
-            addresses = [
-                "https://static.staticsave.com/testingforcam/assets.xml",
+        # self.url_list = self.ui_settings.full_address_list
+        self.url_list = [
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
             ]
-            user_tags = ["ProgramToolNumber", "ToolLife"]
-            user_attributes = ["initial"]
-            get_content = True
-
-            extractor = XMLTagExtractor(addresses, user_tags, user_attributes, get_content)
-            extractor.extract_xml_tag_content()
-            self.machines = extractor.machines
-        else:
-            addresses = [
-                "192.168.1.82"
-            ]
-            user_tags = ["ProgramToolNumber", "ToolLife"]
-            user_attributes = ["initial"]
-            get_content = True
-
-            extractor = XMLTagExtractor(addresses, user_tags, user_attributes, get_content)
-            extractor.extract_xml_tag_content()
+        
+        self.extractor.fetch_data(self.url_list, "8000", id=1)
+        self.machines = self.extractor.machines
+        
         # Set the data_fetched flag to True after data is fetched
         self.data_fetched = True
 
@@ -116,63 +125,71 @@ class Ui_mainWindow(QtCore.QObject):
         self.update_table()
 
     def update_table(self):
-        if not self.data_fetched:
-            return
+        machine_count = len(self.machines)
+        if machine_count == 0:
+            return  # Do nothing if there are no machines in the list
 
-        # Clear the existing rows in the table
-        self.tableView.clearContents()
+        tool_count = len(self.machines[0].toolNum)
 
-        # try:
-        #     max_indexes = max(len(machine.toolLife) for machine in self.machines)
-        #     print(max_indexes)
-        # except ValueError as e:
-        #     traceback.print_tb(e.__traceback__)
-        #     self.ui_settings.message.setText("Something went wrong")
-        #     self.ui_settings.message.setIcon(QtWidgets.QMessageBox.Icon.Critical)
-        #     self.ui_settings.message.exec()
-        #     self.stop_fetching_data()
-        #     return
-        
-        max_indexes = max(len(machine.toolLife) for machine in self.machines)
+        # Clear the table completely before updating
+        self.tableView.setRowCount(0)  # This will clear the table's model
 
-        # Set the number of rows in the table
-        self.tableView.setRowCount(max_indexes)
+        # Initialize variables to keep track of row and machine indices
+        row_index = 0
+        machine_index = 0
 
-        # Loop through the indexes and add the data to the table
-        for row in range(max_indexes):
-            for col in range(4):  # We have 4 columns (tool_num, address, tool_life, status)
-                # Find the machine object that has data at the current index
-                valid_machines = [machine for machine in self.machines if len(machine.toolLife) > row]
+        # Add new rows with updated data
+        for _ in range(machine_count):
+            tool_num_list = self.machines[machine_index].toolNum
+            tool_life_list = self.machines[machine_index].toolLife
+            initial_list = self.machines[machine_index].initial
 
-                if not valid_machines:
-                    # No machines have data at this index, leave the cells empty
-                    item = QtWidgets.QTableWidgetItem("")
-                else:
-                    # Use the first valid machine for the current index (you can adjust the logic as needed)
-                    machine = valid_machines[0]
+            for i in range(tool_count):
+                # Insert a new row with the updated data
+                self.tableView.insertRow(row_index)
+                
+                # Set values for each column in the current row
+                self.tableView.setItem(row_index, 0, QtWidgets.QTableWidgetItem(str(tool_num_list[i])))
+                self.tableView.setItem(row_index, 1, QtWidgets.QTableWidgetItem(str(self.machines[machine_index].id)))
+                self.tableView.setItem(row_index, 2, QtWidgets.QTableWidgetItem(str(tool_life_list[i])))
 
-                    if col == 0:
-                        # Tool Number
-                        item = QtWidgets.QTableWidgetItem(str(machine.toolNum[row]) if len(machine.toolNum) > row else "")
-                    elif col == 1:
-                        # Address
-                        item = QtWidgets.QTableWidgetItem(str(machine.address))
-                    elif col == 2:
-                        # Tool Life
-                        item = QtWidgets.QTableWidgetItem(str(machine.toolLife[row]) if len(machine.toolLife) > row else "")
-                    else:
-                        # Status
-                        initial = machine.initial[row] if len(machine.initial) > row else 1
-                        tool_life = machine.toolLife[row] if len(machine.toolLife) > row else 0
-
-                        if int(tool_life) / int(initial) < 0.15:
-                            item = QtWidgets.QTableWidgetItem("NG")
+                # Calculate and set the value for the fourth column
+                tool_life = tool_life_list[i]
+                initial_life = initial_list[i]
+                critical = QtGui.QColor(255, 185, 185)
+                warning = QtGui.QColor(255, 255, 153)
+                if tool_life != 'N/A' and initial_life != 'N/A':
+                    try:
+                        tool_life_int = int(tool_life)
+                        initial_life_int = int(initial_life)
+                        if initial_life_int != 0:
+                            progress = tool_life_int / initial_life_int
+                            if progress == 0:
+                                item = QtWidgets.QTableWidgetItem("{:.2f}".format(progress) + " NG")
+                                item.setBackground(critical)
+                            elif progress < self.ui_settings.percentage:
+                                item = QtWidgets.QTableWidgetItem("{:.2f}".format(progress) + " OK")
+                                item.setBackground(warning)
+                            else:
+                                item = QtWidgets.QTableWidgetItem("{:.2f}".format(progress))
+                            self.tableView.setItem(row_index, 3, item)
                         else:
-                            item = QtWidgets.QTableWidgetItem("OK")
+                            self.tableView.setItem(row_index, 3, QtWidgets.QTableWidgetItem("INITIAL LIFE 0").setBackground(critical))
+                    except ValueError:
+                        self.tableView.setItem(row_index, 3, QtWidgets.QTableWidgetItem("N/A"))
+                else:
+                    item = QtWidgets.QTableWidgetItem("N/A")
+                    item.setBackground(critical)
+                    self.tableView.setItem(row_index, 3, item)
 
-                # Set the item in the current row and column
-                self.tableView.setItem(row, col, item)
-            
+                row_index += 1 # FIGURING OUT HOW TO GET THE TABLE TO POPULATE WHILE NOT ADDING DUPLICATE DATA
+
+            # Move to the next machine
+            machine_index += 1
+
+        # Ensure that the table view is refreshed with the new data
+        self.tableView.viewport().update()
+
     def open_settings(self):
         self.settings_window.show()
         
