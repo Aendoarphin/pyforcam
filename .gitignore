@@ -1,5 +1,5 @@
 # Ignore everything
-*.pyc
+*
 
 # Except .gitignore file
 !.gitignore
