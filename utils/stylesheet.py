@@ -44,9 +44,4 @@ styles_settings = u"""
     QLabel[objectName='lblHeading'], QLabel[objectName='lblHeading2']{
         font-weight: bold;
     }
-
-    QLabel[objectName='lblColorIndicatorValue'] {
-        border: 1px solid gray;
-        background-color: rgb(255, 255, 127);
-    }
 """

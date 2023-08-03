@@ -12,9 +12,12 @@ class Ui_Dialog(QtCore.QObject):
         self.full_address_list = []
         
         self.percentage = .3
-        self.interval = 5
-        self.color = ""
+        self.interval = 0
+        self.color = "background-color: rgb(255, 255, 127)"
         self.data = {}
+        
+        self.normal = "background-color: rgb(255,255,255)"
+        self.error = "background-color: rgb(255,185,185)"
         
         self.message = QtWidgets.QMessageBox()
         
@@ -31,21 +34,28 @@ class Ui_Dialog(QtCore.QObject):
     
     def listen(self, Dialog):
         self.txtHost.setEnabled(False)
-        # Events
         self.interval = int(self.spinInterval.value())
-        self.spinInterval.valueChanged.connect(lambda: [self.set_interval()])
+        self.percentage = self.spinPercent.value()
+        # Events
+        self.spinInterval.valueChanged.connect(lambda: self.set_interval())
+        self.spinPercent.valueChanged.connect(lambda: self.set_percentage())
         
         self.btnSetModular.clicked.connect(lambda: self.enable_network_input())
 
         self.btnPlus.clicked.connect(lambda: self.update_list(self.btnPlus.text()))
         self.btnMinus.clicked.connect(lambda: self.update_list(self.btnMinus.text()))
         self.btnAddFull.clicked.connect(lambda: self.update_list(self.btnAddFull.text()))
+        
+        var_info = f"Interval: {self.interval}s\nPercentage:{self.percentage}\nColor: {self.lblColorIndicatorValue}"
 
-        self.buttonBox.accepted.connect(lambda: [self.show_message(), self.show_message(f"Interval set to {self.interval}s", True), Dialog.accept()])
+        self.buttonBox.accepted.connect(lambda: [self.show_message(), self.show_message(var_info, True), Dialog.accept()])
         self.buttonBox.rejected.connect(Dialog.reject) # type: ignore
         
     def set_interval(self):
         self.interval = int(self.spinInterval.value())
+        
+    def set_percentage(self):
+        self.percentage = int(self.spinPercent.value())
         
     def show_message(self, message=None, custom=None):
         if custom == True:
@@ -63,24 +73,26 @@ class Ui_Dialog(QtCore.QObject):
             self.listAddress.addItem(self.full_address)
             self.full_address_list.append(self.full_address)
             self.txtHost.clear()
+            self.txtHost.setStyleSheet(self.normal)
             self.full_address = ""
             self.host = ""
             self.print_list()
             print(f"ADDRESS WAS ADDED: {self.network + self.host}")
+        else: self.txtHost.setStyleSheet(self.error)
         if mode == "Add":
             list_from_text = self.get_list_from_text(self.txtFullAddress.text())
             if self.txtFullAddress.text() != "" and self.check_full_address(full_addresses):
                 self.listAddress.addItems(list_from_text)
                 self.full_address_list.extend(list_from_text)  # Use 'extend' to append individual elements
                 self.txtFullAddress.clear()
-                self.txtFullAddress.setStyleSheet("background-color: rgb(255,255,255)")
+                self.txtFullAddress.setStyleSheet(self.normal)
                 self.print_list()
                 print(f"ADDRESSES WERE ADDED: {full_addresses}")
             else: 
-                self.txtFullAddress.setStyleSheet("background-color: rgb(255,185,185)")
+                self.txtFullAddress.setStyleSheet(self.error)
 
         if mode == "-":
-            self.txtFullAddress.setStyleSheet("background-color: rgb(255,255,255)")
+            self.txtFullAddress.setStyleSheet(self.normal)
             self.remove_sel()
             self.print_list()
             print(f"ITEM REMOVED")
@@ -104,11 +116,11 @@ class Ui_Dialog(QtCore.QObject):
     def get_list_from_text(self, full_addresses: str):
         # Split the input string by comma and strip any whitespace around each IP address
         addresses = [address.strip() for address in full_addresses.split(',')]
-        self.txtFullAddress.setStyleSheet("background-color: rgb(255,255,255)")
+        self.txtFullAddress.setStyleSheet(self.normal)
 
         # If there is only one IP address, return it as a list with a single item
         if len(addresses) == 1:
-            self.txtFullAddress.setStyleSheet("background-color: rgb(255,255,255)")
+            self.txtFullAddress.setStyleSheet(self.normal)
             return addresses
 
         return addresses
@@ -140,14 +152,14 @@ class Ui_Dialog(QtCore.QObject):
         # If any of fields are empty
         if "" in input_value:
             for obj in input_obj:
-                obj.setStyleSheet("background-color: rgb(255, 185, 185)")
+                obj.setStyleSheet(self.error)
             if self.txtNetwork1.isEnabled() == True : self.txtHost.setEnabled(False)
             self.network = ""
             print(f"NETWORK ADDRESS WAS RESET: {self.network}")
         elif all(input != "" for input in input_value):
             if self.btnSetModular.text() == "Change":
                 for obj in input_obj:
-                    obj.setStyleSheet("background-color: rgb(255, 255, 255)")
+                    obj.setStyleSheet(self.normal)
                     obj.setEnabled(True)
                     obj.setText("")
                 self.txtHost.setEnabled(False)
@@ -155,7 +167,7 @@ class Ui_Dialog(QtCore.QObject):
                 self.network = ""
             else:
                 for obj in input_obj:
-                    obj.setStyleSheet("background-color: rgb(255, 255, 255)")
+                    obj.setStyleSheet(self.normal)
                     obj.setEnabled(False)
                 self.network = self.txtNetwork1.text() + "." + self.txtNetwork2.text() + "." + self.txtNetwork3.text() + "."
                 self.txtHost.setEnabled(True)
@@ -260,10 +272,11 @@ class Ui_Dialog(QtCore.QObject):
         self.spinPercent.setMinimumSize(QtCore.QSize(65, 0))
         self.spinPercent.setMaximumSize(QtCore.QSize(65, 16777215))
         self.spinPercent.setMinimum(1)
+        self.spinPercent.setMaximum(100)
         self.spinPercent.setProperty("value", 30)
         self.spinPercent.setDisplayIntegerBase(10)
         self.spinPercent.setObjectName("spinPercent")
-        self.spinPercent.setEnabled(False)
+        self.spinPercent.setEnabled(True)
         self.horizontalLayout_8.addWidget(self.spinPercent)
         self.gridLayout.addLayout(self.horizontalLayout_8, 1, 0, 1, 1)
         self.lblHeading = QtWidgets.QLabel(parent=Dialog)
@@ -291,6 +304,7 @@ class Ui_Dialog(QtCore.QObject):
         self.lblColorIndicatorValue.setText("Select Color")
         self.lblColorIndicatorValue.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.lblColorIndicatorValue.setObjectName("lblColorIndicatorValue")
+        self.lblColorIndicatorValue.setStyleSheet(self.color + ";\nborder: 1px solid gray")
         self.btnSetColor = QtWidgets.QPushButton(parent=Dialog)
         self.btnSetColor.setMinimumSize(QtCore.QSize(82, 0))
         self.btnSetColor.setObjectName("btnSetColor")
@@ -330,9 +344,9 @@ class Ui_Dialog(QtCore.QObject):
         self.spinInterval.setMinimumSize(QtCore.QSize(65, 0))
         self.spinInterval.setMaximumSize(QtCore.QSize(65, 16777215))
         self.spinInterval.setDecimals(0)
-        self.spinInterval.setMinimum(20.0)
+        self.spinInterval.setMinimum(5.0)
         self.spinInterval.setMaximum(3600.0)
-        self.spinInterval.setProperty("value", 20.0)
+        self.spinInterval.setProperty("value", 5.0)
         self.spinInterval.setObjectName("spinInterval")
         self.spinInterval.setEnabled(True)
         self.horizontalLayout_9.addWidget(self.spinInterval)
