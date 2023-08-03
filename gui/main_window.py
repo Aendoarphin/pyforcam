@@ -13,7 +13,7 @@ class Ui_mainWindow(QtCore.QObject):
         self.settings_window = QtWidgets.QDialog()
         self.ui_settings = Ui_Dialog()
         self.ui_settings.setupUi(self.settings_window)
-        self.url_list = []
+        self.address_list = []
         self.machines = []
         
         # Create a QTimer instance
@@ -89,32 +89,32 @@ class Ui_mainWindow(QtCore.QObject):
 
     def fetch_data(self):
         configure_logging()
-        # self.url_list = self.ui_settings.full_address_list
-        self.url_list = [
-            "192.168.1.248", 
-            "192.168.1.248", 
-            "192.168.1.248", 
-            "192.168.1.248", 
-            "192.168.1.248", 
-            "192.168.1.248", 
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248",
-            ]
+        self.address_list = self.ui_settings.full_address_list
+        # self.address_list = [
+        #     "192.168.1.248", 
+        #     "192.168.1.248", 
+        #     "192.168.1.248", 
+        #     "192.168.1.248", 
+        #     "192.168.1.248", 
+        #     "192.168.1.248", 
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     "192.168.1.248",
+        #     ]
         
-        self.extractor.fetch_data(self.url_list, "8000", id=1)
+        self.extractor.fetch_data(self.address_list, "5000", id=1)
         self.machines = self.extractor.machines
         
         # Set the data_fetched flag to True after data is fetched

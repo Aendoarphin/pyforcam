@@ -91,9 +91,9 @@ class XMLTagExtractor:
             self.toolLives = []  # Clear the toolLives list before processing data for a new machine
             self.toolInits = []  # Clear the toolInits list before processing data for a new machine
 
-            url = f"http://{address}:{port}/sample-files" # TEST URL
+            # url = f"http://{address}:{port}/sample-files" # TEST URL
             
-            # url = f"http://{address}:{port}/assets" # REAL URL
+            url = f"http://{address}:{port}/assets" # REAL URL
             self.retrieve_cutting_tool_info(self.get_xml(url), id)  # Pass the XML content to the method
             id += 1
             count += 1
