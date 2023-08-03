@@ -89,7 +89,7 @@ class Ui_mainWindow(QtCore.QObject):
 
     def fetch_data(self):
         configure_logging()
-        self.address_list = self.ui_settings.full_address_list
+        # self.address_list = self.ui_settings.full_address_list
         self.address_list = [
             "192.168.1.248", 
             "192.168.1.248", 
@@ -128,29 +128,30 @@ class Ui_mainWindow(QtCore.QObject):
         if machine_count == 0:
             return  # Do nothing if there are no machines in the list
 
-        tool_count = len(self.machines[0].toolNum)
-
         # Clear the table completely before updating
         self.tableView.setRowCount(0)  # This will clear the table's model
 
-        # Initialize variables to keep track of row and machine indices
+        # Initialize variable to keep track of row index
         row_index = 0
-        machine_index = 0
 
         # Add new rows with updated data
-        for _ in range(machine_count):
+        for machine_index in range(machine_count):
             tool_num_list = self.machines[machine_index].toolNum
             tool_life_list = self.machines[machine_index].toolLife
             initial_list = self.machines[machine_index].initial
+            tool_count = len(tool_num_list)  # Get the tool count for the current machine
 
             for i in range(tool_count):
                 # Insert a new row with the updated data
                 self.tableView.insertRow(row_index)
-                
-                # Set values for each column in the current row
-                self.tableView.setItem(row_index, 0, QtWidgets.QTableWidgetItem(str(tool_num_list[i])))
-                self.tableView.setItem(row_index, 1, QtWidgets.QTableWidgetItem(str(self.machines[machine_index].id)))
-                self.tableView.setItem(row_index, 2, QtWidgets.QTableWidgetItem(str(tool_life_list[i])))
+
+                try:
+                    # Set values for each column in the current row
+                    self.tableView.setItem(row_index, 0, QtWidgets.QTableWidgetItem(str(tool_num_list[i])))
+                    self.tableView.setItem(row_index, 1, QtWidgets.QTableWidgetItem(str(self.machines[machine_index].id)))
+                    self.tableView.setItem(row_index, 2, QtWidgets.QTableWidgetItem(str(tool_life_list[i])))
+                except Exception as e:
+                    print(f"{e}: {str(tool_num_list)}")
 
                 # Calculate and set the value for the fourth column
                 tool_life = tool_life_list[i]
@@ -181,10 +182,7 @@ class Ui_mainWindow(QtCore.QObject):
                     item.setBackground(critical)
                     self.tableView.setItem(row_index, 3, item)
 
-                row_index += 1 # FIGURING OUT HOW TO GET THE TABLE TO POPULATE WHILE NOT ADDING DUPLICATE DATA
-
-            # Move to the next machine
-            machine_index += 1
+                row_index += 1
 
         # Ensure that the table view is refreshed with the new data
         self.tableView.viewport().update()
