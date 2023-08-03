@@ -25,14 +25,13 @@ class Ui_mainWindow(QtCore.QObject):
         
         # Loading element for gui
         self.loading_dots = 0
-        self.interval = 0
         self.loading_animation_running = False  # Add a flag to track the loading animation state
         
     def listen(self):
         self.actionOptions.triggered.connect(self.open_settings)
         self.btnStart.clicked.connect(self.start_fetching_data)
         self.btnStop.clicked.connect(self.stop_fetching_data)
-        self.timer.start(1000)  # Start the timer initially
+        self.timer.start(20000)  # Start the timer initially
         
     def start_loading(self):
         if not self.loading_animation_running:  # Check if the animation is not already running
@@ -62,11 +61,11 @@ class Ui_mainWindow(QtCore.QObject):
     
     def start_fetching_data(self):
         if not self.data_fetched:
-            # Start the timer to call fetch_data every 60 seconds
-            self.timer.start(1000)
+            # Start the timer to call fetch_data every x seconds
+            self.timer.start(self.ui_settings.interval*1000)
             # Set the data_fetched flag to True after starting the timer
             self.data_fetched = True
-            self.notify("Operation initiated")
+            self.notify("Operation initiated, wait for the timer to end (default 20s)")
             
     def stop_fetching_data(self):
         if self.data_fetched:

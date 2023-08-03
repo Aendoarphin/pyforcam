@@ -12,7 +12,7 @@ class Ui_Dialog(QtCore.QObject):
         self.full_address_list = []
         
         self.percentage = .3
-        self.interval = 5
+        self.interval = 20
         self.color = ""
         self.data = {}
         
@@ -32,7 +32,8 @@ class Ui_Dialog(QtCore.QObject):
     def listen(self, Dialog):
         self.txtHost.setEnabled(False)
         # Events
-        self.spinInterval.valueChanged.connect(lambda: [self.set_interval(10000)])
+        self.interval = int(self.spinInterval.value())
+        self.spinInterval.valueChanged.connect(lambda: [self.set_interval()])
         
         self.btnSetModular.clicked.connect(lambda: self.enable_network_input())
 
@@ -40,17 +41,17 @@ class Ui_Dialog(QtCore.QObject):
         self.btnMinus.clicked.connect(lambda: self.update_list(self.btnMinus.text()))
         self.btnAddFull.clicked.connect(lambda: self.update_list(self.btnAddFull.text()))
 
-        self.buttonBox.accepted.connect(lambda: [self.show_message(), self.show_message(f"Interval set to {self.spinInterval.value()}s", True), Dialog.accept()]) # type: ignore
+        self.buttonBox.accepted.connect(lambda: [self.show_message(), self.show_message(f"Interval set to {self.interval}s", True), Dialog.accept()])
         self.buttonBox.rejected.connect(Dialog.reject) # type: ignore
         
-    def set_interval(self, interval):
-        self.interval = interval*1000
+    def set_interval(self):
+        self.interval = int(self.spinInterval.value())
         
     def show_message(self, message=None, custom=None):
         if custom == True:
             self.message.setText(message)
         else:
-            self.message.setText(f"Addresses: {self.full_address_list}")
+            self.message.setText(f"Link format: http://(ADDRESS):5000/assets\nAddresses: {self.full_address_list}")
         self.message.setIcon(QtWidgets.QMessageBox.Icon.Information)
         self.message.exec()
         
@@ -329,9 +330,9 @@ class Ui_Dialog(QtCore.QObject):
         self.spinInterval.setMinimumSize(QtCore.QSize(65, 0))
         self.spinInterval.setMaximumSize(QtCore.QSize(65, 16777215))
         self.spinInterval.setDecimals(0)
-        self.spinInterval.setMinimum(5.0)
+        self.spinInterval.setMinimum(20.0)
         self.spinInterval.setMaximum(3600.0)
-        self.spinInterval.setProperty("value", 60.0)
+        self.spinInterval.setProperty("value", 20.0)
         self.spinInterval.setObjectName("spinInterval")
         self.spinInterval.setEnabled(True)
         self.horizontalLayout_9.addWidget(self.spinInterval)
