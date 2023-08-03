@@ -12,5 +12,5 @@ if __name__ == '__main__':
     mainWindow.show()
     sys.exit(app.exec())
     
-    
+    # LEFT OFF IN SETTINGS WINDOW DOING THE COLOR LABEL
     
