@@ -31,7 +31,7 @@ class Ui_mainWindow(QtCore.QObject):
         self.actionOptions.triggered.connect(self.open_settings)
         self.btnStart.clicked.connect(self.start_fetching_data)
         self.btnStop.clicked.connect(self.stop_fetching_data)
-        self.timer.start(20000)  # Start the timer initially
+        self.timer.start(self.ui_settings.interval*1000)  # Start the timer initially
         
     def start_loading(self):
         if not self.loading_animation_running:  # Check if the animation is not already running
@@ -90,31 +90,31 @@ class Ui_mainWindow(QtCore.QObject):
     def fetch_data(self):
         configure_logging()
         self.address_list = self.ui_settings.full_address_list
-        # self.address_list = [
-        #     "192.168.1.248", 
-        #     "192.168.1.248", 
-        #     "192.168.1.248", 
-        #     "192.168.1.248", 
-        #     "192.168.1.248", 
-        #     "192.168.1.248", 
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     "192.168.1.248",
-        #     ]
+        self.address_list = [
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248", 
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248",
+            ]
         
-        self.extractor.fetch_data(self.address_list, "5000", id=1)
+        self.extractor.fetch_data(self.address_list, "8000", id=1)
         self.machines = self.extractor.machines
         
         # Set the data_fetched flag to True after data is fetched

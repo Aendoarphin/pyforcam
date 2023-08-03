@@ -12,7 +12,7 @@ class Ui_Dialog(QtCore.QObject):
         self.full_address_list = []
         
         self.percentage = .3
-        self.interval = 20
+        self.interval = 5
         self.color = ""
         self.data = {}
         
@@ -294,7 +294,7 @@ class Ui_Dialog(QtCore.QObject):
         self.btnSetColor = QtWidgets.QPushButton(parent=Dialog)
         self.btnSetColor.setMinimumSize(QtCore.QSize(82, 0))
         self.btnSetColor.setObjectName("btnSetColor")
-        self.btnSetColor.setEnabled(False)
+        self.btnSetColor.setEnabled(True)
         self.horizontalLayout_2.addWidget(self.lblColorIndicatorValue)
         self.horizontalLayout_2.addWidget(self.btnSetColor)
         self.gridLayout.addLayout(self.horizontalLayout_2, 6, 0, 1, 1)

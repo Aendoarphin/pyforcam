@@ -1,10 +1,20 @@
-import logging, requests
+import logging
+import requests
 from xml.etree import ElementTree as ET
 from machines import Machines
 
 
 class XMLTagExtractor:
     def __init__(self, addresses=None, user_tags=None, user_attributes=None, get_content=False):
+        """
+        Initialize the XMLTagExtractor object.
+
+        Parameters:
+            addresses (list or str): A list of IP addresses or a single IP address.
+            user_tags (list): A list of user-defined tags to extract from the XML (not used in this code).
+            user_attributes (list): A list of user-defined attributes to extract from the XML (not used in this code).
+            get_content (bool): Whether to fetch and extract the content of XML tags (not used in this code).
+        """
         self.addresses = addresses if isinstance(addresses, list) else [addresses]
         self.user_tags = user_tags
         self.user_attributes = user_attributes
@@ -17,72 +27,80 @@ class XMLTagExtractor:
         self.toolNums = []
         self.toolLives = []
         self.toolInits = []
-        
+
     def get_xml(self, url):
+        """
+        Fetch the XML content from the specified URL.
+
+        Parameters:
+            url (str): The URL to fetch the XML content from.
+
+        Returns:
+            str: The XML content as a string if successful, otherwise None.
+        """
         try:
             response = requests.get(url)
             if response.status_code == 200:
                 xml_content = response.content.decode('utf-8')
-                #print(xml_content)
-                #print("XML file was fetched and displayed.")
                 return xml_content
             else:
-                #print(f"Failed to fetch XML. Status code: {response.status_code}")
                 pass
         except requests.exceptions.RequestException as e:
-            #print(f"Error: {e}")
             pass
-            
+
     def retrieve_cutting_tool_info(self, xml_string, id):
-        # Parse the XML string
+        """
+        Extract cutting tool information from the XML content.
+
+        Parameters:
+            xml_string (str): The XML content as a string.
+            id (int): The identifier for the machine.
+
+        Note:
+            The extracted cutting tool information is stored in the `self.machines` list.
+        """
         root = ET.fromstring(xml_string)
 
-        # Find all CuttingTool elements
         cutting_tools = root.findall('.//{urn:mtconnect.org:MTConnectAssets:1.3}CuttingTool')
 
-        # Loop through each CuttingTool and retrieve the required information
         count = 0
         new_machine = Machines()
         for cutting_tool in cutting_tools:
-            #print("---------------------------")
-            
-            #print(f"CuttingTool: {cutting_tool.attrib.get('serialNumber', 'N/A')}")
-            
-            # Check if the ToolLife element exists and retrieve its text
             tool_life_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ToolLife')
             tool_life = tool_life_element.text if tool_life_element is not None else 'N/A'
-            #print(f"ToolLife: {tool_life}")
 
-            # Check if the ToolLife element has 'initial' attribute and retrieve it
             initial_life = tool_life_element.attrib.get('initial', 'N/A') if tool_life_element is not None else 'N/A'
-            #print(f"Initial ToolLife: {initial_life}")
 
-            # Check if the ProgramToolNumber element exists and retrieve its text
             program_tool_number_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ProgramToolNumber')
             program_tool_number = program_tool_number_element.text if program_tool_number_element is not None else 'N/A'
-            #print(f"ProgramToolNumber: {program_tool_number}")
-            
+
             self.toolLives.append(tool_life)
             self.toolNums.append(program_tool_number)
             self.toolInits.append(initial_life)
-            
-            #print("---------------------------")
+
             count += 1
         new_machine.id = id
         new_machine.toolLife = self.toolLives
         new_machine.toolNum = self.toolNums
         new_machine.initial = self.toolInits
         self.machines.append(new_machine)
-        
+
         self.toolLives = []
         self.toolNums = []
         self.toolInits = []
-        
-        #print("---------------------------")
-        #print(f"Tools Analyzed: {count}")
-        #print("---------------------------")
 
     def fetch_data(self, address_list, port, id):
+        """
+        Fetch data from multiple machines and extract cutting tool information.
+
+        Parameters:
+            address_list (list): A list of IP addresses of the machines to fetch data from.
+            port (str): The port number for the machine.
+            id (int): The starting identifier for the machines.
+
+        Note:
+            The extracted cutting tool information for each machine is stored in the `self.machines` list.
+        """
         self.machines = []  # Clear the machines list before processing new data
 
         count = 0
@@ -91,21 +109,16 @@ class XMLTagExtractor:
             self.toolLives = []  # Clear the toolLives list before processing data for a new machine
             self.toolInits = []  # Clear the toolInits list before processing data for a new machine
 
-            # url = f"http://{address}:{port}/sample-files" # TEST URL
-            
-            url = f"http://{address}:{port}/assets" # REAL URL
+            url = f"http://{address}:{port}/sample-files" # TEST URL
+
             self.retrieve_cutting_tool_info(self.get_xml(url), id)  # Pass the XML content to the method
             id += 1
             count += 1
-            
-        #print("---------------------------")
-        #print(f"Machines analyzed: {count}")
-        #print("---------------------------")
-        
+
         for machine in self.machines:
-            #print(machine)
             pass
 
+# THIS BLOCK IS FOR TESTING PURPOSES
 if __name__ == "__main__":
     extractor = XMLTagExtractor()
     list = ["192.168.1.248",
@@ -113,5 +126,3 @@ if __name__ == "__main__":
             "192.168.1.248",
             "192.168.1.248"]
     extractor.fetch_data(list, "8000", 1)
-    
-# REMOVE PASSES WHEN ENABLING LOGS
