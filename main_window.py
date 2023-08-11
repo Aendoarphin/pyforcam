@@ -3,9 +3,10 @@ from settings_window import Ui_Dialog
 from XML import XMLTagExtractor
 from stylesheet import styles_main
 import datetime as dt
-import sys, os
+import sys, os, logging
 from background import BackgroundImageWidget
-
+from log import configure_logging
+# EMAIL THE WORKING BUILD AND UPDATE WORKING BRANCH
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller."""
     try:
@@ -88,14 +89,16 @@ class Ui_mainWindow(QtCore.QObject):
         self.lblLogDesc.setText(message)
             
     def start_fetching_data(self):
-        if not self.data_fetched:
-            # Call the fetch_data method to fetch data immediately
-            self.fetch_data()
-            self.timer.start(self.ui_settings.interval*1000)  # Start the timer initially
-            self.set_timestamp()
-            # Set the data_fetched flag to True
-            self.data_fetched = True
-            self.notify(f"Operation initiated")
+        try:
+            if not self.data_fetched:
+                self.notify(f"Operation initiated")
+                # Call the fetch_data method to fetch data immediately
+                self.fetch_data()
+                self.timer.start(self.ui_settings.interval*1000)
+                self.set_timestamp()
+                # Set the data_fetched flag to True
+                self.data_fetched = True
+        except Exception as e: print(f"Error: {e}")
             
     def stop_fetching_data(self, custom_message=None):
         if self.data_fetched:
@@ -129,11 +132,13 @@ class Ui_mainWindow(QtCore.QObject):
         event.accept()
 
     def fetch_data(self):
-        self.address_list = self.ui_settings.ip_list
-        # self.address_list = [
-        #     "192.168.1.248", 
-        #     "192.168.1.248",
-        #     ]
+        # self.address_list = self.ui_settings.ip_list
+        self.address_list = [
+            "192.168.1.248", 
+            "192.168.1.248",
+            "192.168.1.248",
+            "192.168.1.248", 
+            ]
 
         self.extractor.fetch_data(self.address_list, "5000", id=1)
         
@@ -174,28 +179,27 @@ class Ui_mainWindow(QtCore.QObject):
                 initial_life = initial_list[i]
                 critical = QtGui.QColor(255, 185, 185, 190)
                 warning = QtGui.QColor(255, 255, 153, 190)
-                item = QtWidgets.QTableWidgetItem("N/A")
-                visible_item = QtWidgets.QTableWidgetItem()
-                visible_item.setBackground(critical)
-                visible_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                item = QtWidgets.QTableWidgetItem("NULL")
+                item2 = QtWidgets.QTableWidgetItem("NULL")
+                percent_item = QtWidgets.QTableWidgetItem()
+                percent_item.setBackground(critical)
+                percent_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
-                if tool_life != 'N/A' and initial_life != 'N/A':
+                if tool_life != 'NULL' and initial_life != 'NULL':
                     try:
-                        print(self.ui_settings.percentage)
                         tool_life_int = int(tool_life)
                         initial_life_int = int(initial_life)
                         if initial_life_int != 0:
                             float_percent = tool_life_int / initial_life_int
                             if float_percent <= 0:
                                 state_item = QtWidgets.QTableWidgetItem("NG")
-                                visible_item.setBackground(critical)
+                                percent_item.setBackground(critical)
                             elif float_percent <= self.ui_settings.percentage * .01:
-                                print(f"float_percent: {float_percent}\nsettings.percentage: {self.ui_settings.percentage}")
                                 state_item = QtWidgets.QTableWidgetItem("OK")
-                                visible_item.setBackground(warning)
+                                percent_item.setBackground(warning)
                             elif float_percent > self.ui_settings.percentage * .01:
                                 state_item = QtWidgets.QTableWidgetItem("OK")
-                                visible_item.setBackground(QtGui.QColor(0,0,0,0))
+                                percent_item.setBackground(QtGui.QColor(0,0,0,0))
                             else:
                                 state_item = None
                             item.setText("{:.2f}".format(float_percent))
@@ -203,20 +207,23 @@ class Ui_mainWindow(QtCore.QObject):
                                 state_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                                 self.tableView.setItem(row_index, 5, state_item)
                         else:
-                            visible_item.setText("INITIAL LIFE 0")
+                            percent_item.setText("INITIAL LIFE 0")
                         self.tableView.setItem(row_index, 3, item)
-                        visible_item.setText("{:.0%}".format(float_percent))
-                        self.tableView.setItem(row_index, 4, visible_item)
+                        percent_item.setText("{:.0%}".format(float_percent))
+                        self.tableView.setItem(row_index, 4, percent_item)
                     except ValueError:
-                        self.tableView.setItem(row_index, 3, item)
+                        self.tableView.setItem(row_index, 4, item)
+                        self.tableView.setItem(row_index, 5, item2)
                 else:
-                    self.tableView.setItem(row_index, 3, item)
+                    self.tableView.setItem(row_index, 4, item)
+                    self.tableView.setItem(row_index, 5, item2)
 
                 row_index += 1
 
         self.tableView.viewport().update()
         self.tableView.sortByColumn(3, QtCore.Qt.SortOrder.AscendingOrder)
-        self.tableView.sortItems(4, QtCore.Qt.SortOrder.AscendingOrder)
+        self.tableView.setSortingEnabled(False)
+        print("table updated")
         
 
     def open_settings(self):
@@ -378,11 +385,19 @@ class Ui_mainWindow(QtCore.QObject):
         self.actionOptions.setText(_translate("mainWindow", "Options"))
         self.actionExit.setText(_translate("mainWindow", "Exit"))
 
-if __name__ == '__main__':
-    import sys
+def main():
     app = QtWidgets.QApplication(sys.argv)
     mainWindow = QtWidgets.QMainWindow()
     ui = Ui_mainWindow()
     ui.setupUi(mainWindow)
     mainWindow.show()
     sys.exit(app.exec())
+
+if __name__ == '__main__':
+    configure_logging()  # Configure the logger
+    logger = logging.getLogger(__name__)
+    try:
+        main()
+    except Exception:
+        # Log the full exception traceback at the ERROR level
+        logger.exception("An error occurred")
