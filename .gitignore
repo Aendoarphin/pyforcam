@@ -1,8 +1,9 @@
-# Ignore everything
-*
+doc/
+test/
+resources/
+ui-files/
+dist/
+build/
+.vscode/
+*.pyc
 
-# Except .gitignore file
-!.gitignore
-
-# Except .py files
-!*.py
