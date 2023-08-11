@@ -49,3 +49,6 @@ MAIN TASK: Complete data fetch functinality; connect start button to slot
    a. Load the settings from main window via Ui_Dialog object
    b. Initialize Ui_Dialog in main window and assign object attributes
       with the loaded data
+
+
+pyinstaller --onefile --add-data "resources/window-icon.jpg;resources" --add-data "resources/table-bg.png;resources" main_window.py
