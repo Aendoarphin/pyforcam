@@ -26,7 +26,7 @@ class XMLTagExtractor (QtCore.QObject):
             response = requests.get(url)
             if response.status_code == 200:
                 xml_content = response.content.decode('utf-8')
-                print(response.status_code)
+                # print(response.status_code)
                 return xml_content
             else:
                 pass

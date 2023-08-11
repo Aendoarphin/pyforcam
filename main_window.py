@@ -216,6 +216,8 @@ class Ui_mainWindow(QtCore.QObject):
 
         self.tableView.viewport().update()
         self.tableView.sortByColumn(3, QtCore.Qt.SortOrder.AscendingOrder)
+        self.tableView.sortItems(4, QtCore.Qt.SortOrder.AscendingOrder)
+        
 
     def open_settings(self):
         self.settings_window.show()
