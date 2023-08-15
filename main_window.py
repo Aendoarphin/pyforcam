@@ -6,7 +6,8 @@ import datetime as dt
 import sys, os, logging
 from background import BackgroundImageWidget
 from log import configure_logging
-# EMAIL THE WORKING BUILD AND UPDATE WORKING BRANCH
+from class_utils import NumericTableWidgetItem
+
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller."""
     try:
@@ -20,6 +21,9 @@ def resource_path(relative_path):
 class Ui_mainWindow(QtCore.QObject):
     def __init__(self):
         super().__init__()
+        # Init the logger 
+        self.logger = logging.getLogger(__name__)
+        configure_logging()
         # XML Extractor object
         self.extractor = XMLTagExtractor()
         self.settings_window = QtWidgets.QDialog()
@@ -94,10 +98,10 @@ class Ui_mainWindow(QtCore.QObject):
                 self.notify(f"Operation initiated")
                 # Call the fetch_data method to fetch data immediately
                 self.fetch_data()
-                self.timer.start(self.ui_settings.interval*1000)
-                self.set_timestamp()
                 # Set the data_fetched flag to True
                 self.data_fetched = True
+                self.timer.start(self.ui_settings.interval*1000)
+                self.set_timestamp()
         except Exception as e: print(f"Error: {e}")
             
     def stop_fetching_data(self, custom_message=None):
@@ -134,13 +138,13 @@ class Ui_mainWindow(QtCore.QObject):
     def fetch_data(self):
         # self.address_list = self.ui_settings.ip_list
         self.address_list = [
-            "192.168.1.248", 
-            "192.168.1.248",
-            "192.168.1.248",
-            "192.168.1.248", 
+            "http://192.168.1.222:5000/sample-files",
+            "http://192.168.1.222:5000/sample-files",
+            "http://192.168.1.222:9000/sample-files",
+            "http://192.168.1.222:9000/sample-files",
             ]
 
-        self.extractor.fetch_data(self.address_list, "5000", id=1)
+        self.extractor.fetch_data(self.address_list,  1)
         
         self.machines = self.extractor.machines
         
@@ -153,14 +157,14 @@ class Ui_mainWindow(QtCore.QObject):
     def update_table(self):
         machine_count = len(self.machines)
         if machine_count == 0:
-            return  # Do nothing if there are no machines in the list
-
-        tool_count = len(self.machines[0].toolNum)
+            self.logger.info("No machines detected")
+            return
         self.tableView.setRowCount(0)
         row_index = 0
 
         for machine_index in range(machine_count):
             tool_num_list = self.machines[machine_index].toolNum
+            tool_count = len(tool_num_list)  # Calculate tool_count for the current machine
             tool_life_list = self.machines[machine_index].toolLife
             initial_list = self.machines[machine_index].initial
 
@@ -168,10 +172,9 @@ class Ui_mainWindow(QtCore.QObject):
                 self.tableView.insertRow(row_index)
                 self.tableView.setRowHeight(row_index, 75)
                 tn_item = QtWidgets.QTableWidgetItem(str(tool_num_list[i]))
-                m_item = QtWidgets.QTableWidgetItem("MA " + str(self.machines[machine_index].id))
-                tl_item = QtWidgets.QTableWidgetItem(str(tool_life_list[i]))
-                for twi in [tn_item, m_item, tl_item]: 
-                    twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                m_item = NumericTableWidgetItem(str(self.machines[machine_index].id))
+                tl_item = NumericTableWidgetItem(tool_life_list[i])
+                
                 self.tableView.setItem(row_index, 0, tn_item)
                 self.tableView.setItem(row_index, 1, m_item)
                 self.tableView.setItem(row_index, 2, tl_item)
@@ -183,7 +186,8 @@ class Ui_mainWindow(QtCore.QObject):
                 item2 = QtWidgets.QTableWidgetItem("NULL")
                 percent_item = QtWidgets.QTableWidgetItem()
                 percent_item.setBackground(critical)
-                percent_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                for twi in [tn_item, m_item, tl_item, item, item2, percent_item]: 
+                    twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
                 if tool_life != 'NULL' and initial_life != 'NULL':
                     try:
@@ -221,9 +225,9 @@ class Ui_mainWindow(QtCore.QObject):
                 row_index += 1
 
         self.tableView.viewport().update()
-        self.tableView.sortByColumn(3, QtCore.Qt.SortOrder.AscendingOrder)
+        self.tableView.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)
         self.tableView.setSortingEnabled(False)
-        print("table updated")
+        self.logger.info(f"Table updated | Total IP Addresses: {len(self.address_list)}")
         
 
     def open_settings(self):
@@ -349,9 +353,12 @@ class Ui_mainWindow(QtCore.QObject):
         mainWindow.setStatusBar(self.statusbar)
         self.actionOptions = QtGui.QAction(parent=mainWindow)
         self.actionOptions.setObjectName("actionOptions")
+        self.actionAppearance = QtGui.QAction(parent=mainWindow)
+        self.actionAppearance.setObjectName("actionAppearance")
         self.actionExit = QtGui.QAction(parent=mainWindow)
         self.actionExit.setObjectName("actionExit")
         self.menuFile.addAction(self.actionOptions)
+        self.menuFile.addAction(self.actionAppearance)
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
         
@@ -383,6 +390,7 @@ class Ui_mainWindow(QtCore.QObject):
         self.btnStart.setText(_translate("mainWindow", "Start"))
         self.menuFile.setTitle(_translate("mainWindow", "File"))
         self.actionOptions.setText(_translate("mainWindow", "Options"))
+        self.actionAppearance.setText(_translate("mainWindow", "Appearance"))
         self.actionExit.setText(_translate("mainWindow", "Exit"))
 
 def main():

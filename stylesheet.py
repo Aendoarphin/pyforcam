@@ -29,10 +29,12 @@ styles_main = """
         background-repeat: no-repeat; 
         background-position: center; 
         background-attachment: fixed;
+        border: 0px solid white;
     }
     
     QHeaderView::section {
         background-color: lightgray;
+        border-radius: 0px;
     }
     
     QLabel[objectName='lblTimeStamp'] { 

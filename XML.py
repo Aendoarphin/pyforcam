@@ -157,50 +157,88 @@ class XMLTagExtractor(QtCore.QObject):
             
             # Insert the new_machine at the appropriate index
             self.machines.insert(index_to_insert, new_machine)
+            
+############################## MODULAR URL ##############################################
 
-    def fetch_data(self, address_list, port, id):
+    # def fetch_data(self, address_list, port, id):
+    #     self.machines = []
+
+    #     def fetch_thread(address, port, id):
+    #         # url = f"http://{address}:{port}/sample-files"  # TEST URL
+    #         url = f"http://{address}:{port}/assets"  # LIVE URL
+    #         try:
+    #             self.retrieve_cutting_tool_info(self.get_xml(url), id)
+    #             #self.logger.info(f"Data fetched for machine ID {id} from {url}")
+    #         except requests.exceptions.RequestException as e:
+    #             self.logger.error(f"Error fetching data for machine ID {id} from {url}: {e}")
+
+    #     # Limit the number of concurrent threads based on server capacity or rate limits
+    #     MAX_CONCURRENT_THREADS = 4
+
+    #     threads = []
+    #     for address in address_list:
+    #         thread = threading.Thread(target=fetch_thread, args=(address, port, id))
+    #         thread.start()
+    #         threads.append(thread)
+    #         id += 1
+
+    #         # Enforce the maximum number of concurrent threads
+    #         if len(threads) >= MAX_CONCURRENT_THREADS:
+    #             for thread in threads:
+    #                 thread.join()
+    #             threads.clear()
+
+    #     # Join any remaining threads
+    #     for thread in threads:
+    #         thread.join()
+        
+    #     for machine in self.machines:
+    #         print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id}")
+            
+############################## MODULAR URL ##############################################
+    
+############################## EXPLICIT URL ##############################################
+    
+    def fetch_data(self, url_list, id):
         self.machines = []
 
-        def fetch_thread(address, port, id):
-            url = f"http://{address}:{port}/sample-files"  # TEST URL
-            # url = f"http://{address}:{port}/assets"  # LIVE URL
+        def fetch_thread(url, id):
             try:
                 self.retrieve_cutting_tool_info(self.get_xml(url), id)
-                #self.logger.info(f"Data fetched for machine ID {id} from {url}")
             except requests.exceptions.RequestException as e:
                 self.logger.error(f"Error fetching data for machine ID {id} from {url}: {e}")
 
-        # Limit the number of concurrent threads based on server capacity or rate limits
         MAX_CONCURRENT_THREADS = 4
-
         threads = []
-        for address in address_list:
-            thread = threading.Thread(target=fetch_thread, args=(address, port, id))
+
+        for url in url_list:
+            thread = threading.Thread(target=fetch_thread, args=(url, id))
             thread.start()
             threads.append(thread)
             id += 1
 
-            # Enforce the maximum number of concurrent threads
             if len(threads) >= MAX_CONCURRENT_THREADS:
                 for thread in threads:
                     thread.join()
                 threads.clear()
 
-        # Join any remaining threads
         for thread in threads:
             thread.join()
-        
-        # for machine in self.machines:
-        #     print(machine)
+
+        for machine in self.machines:
+            print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id}")
+    
+############################## EXPLICIT URL ##############################################
+
 
 # THIS BLOCK IS FOR TESTING PURPOSES
 if __name__ == "__main__":
     extractor = XMLTagExtractor()
-    address_list = ["192.168.1.248",
-                    "192.168.1.248",
-                    "192.168.1.248",
-                    "192.168.1.248"]
-    extractor.fetch_data(address_list, "5000", 1)
+    address_list = ["http://192.168.1.222:5000/sample-files",
+                    "http://192.168.1.222:5000/sample-files",
+                    "http://192.168.1.222:9000/sample-files",
+                    "http://192.168.1.222:9000/sample-files"]
+    extractor.fetch_data(address_list, 1)
 
 
 

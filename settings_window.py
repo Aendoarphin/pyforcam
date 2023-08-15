@@ -14,7 +14,6 @@ class Ui_Dialog(QtCore.QObject):
         
         self.percentage = .3
         self.interval = 0
-        self.color = "background-color: rgb(255, 255, 127)"
         self.data = {}
         
         self.normal = "background-color: rgb(255,255,255)"
@@ -201,8 +200,7 @@ class Ui_Dialog(QtCore.QObject):
             "network": self.network,
             "ip_list": self.ip_list,
             "percentage": self.percentage,
-            "interval": self.interval,
-            "color": self.color,
+            "interval": self.interval
         }
         # Create the directory if it doesn't exist
         directory = "./config"
@@ -239,9 +237,6 @@ class Ui_Dialog(QtCore.QObject):
             self.interval = self.data.get("interval", self.interval)
             if self.percentage != "":
                 self.spinInterval.setValue(self.interval)
-            self.color = self.data.get("color", self.color)
-            if self.color != "":
-                self.lblColorIndicatorValue.setStyleSheet(self.color + ";\nborder: 1px solid gray")
             current_settings = f"Network:{self.network}\nIP List: {self.ip_list}\nPercentage: {self.percentage}\nInterval: {self.interval}\nData: {self.data}"
             
             self.show_message(current_settings, True)
@@ -341,23 +336,6 @@ class Ui_Dialog(QtCore.QObject):
         self.gridLayout.addWidget(self.buttonBox, 9, 0, 1, 1)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem1)
-        self.lblColorIndicator = QtWidgets.QLabel(parent=Dialog)
-        self.lblColorIndicator.setObjectName("lblColorIndicator")
-        self.horizontalLayout_2.addWidget(self.lblColorIndicator)
-        self.lblColorIndicatorValue = QtWidgets.QLabel(parent=Dialog)
-        self.lblColorIndicatorValue.setMinimumSize(QtCore.QSize(82, 0))
-        self.lblColorIndicatorValue.setText("Select Color")
-        self.lblColorIndicatorValue.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.lblColorIndicatorValue.setObjectName("lblColorIndicatorValue")
-        self.lblColorIndicatorValue.setStyleSheet(self.color + ";\nborder: 1px solid gray")
-        self.btnSetColor = QtWidgets.QPushButton(parent=Dialog)
-        self.btnSetColor.setMinimumSize(QtCore.QSize(82, 0))
-        self.btnSetColor.setObjectName("btnSetColor")
-        self.btnSetColor.setEnabled(True)
-        self.horizontalLayout_2.addWidget(self.lblColorIndicatorValue)
-        self.horizontalLayout_2.addWidget(self.btnSetColor)
         self.gridLayout.addLayout(self.horizontalLayout_2, 6, 0, 1, 1)
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
@@ -409,6 +387,7 @@ class Ui_Dialog(QtCore.QObject):
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.lblFullAddress = QtWidgets.QLabel(parent=Dialog)
         self.lblFullAddress.setObjectName("lblFullAddress")
+        self.lblFullAddress.setMinimumSize(60, 0)
         self.horizontalLayout.addWidget(self.lblFullAddress)
         self.txtFullAddress = QtWidgets.QLineEdit(parent=Dialog)
         self.txtFullAddress.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -453,8 +432,6 @@ class Ui_Dialog(QtCore.QObject):
         self.spinPercent.setToolTip(_translate("Dialog", "Value determines when color indicator activates"))
         self.spinPercent.setSuffix(_translate("Dialog", " %"))
         self.lblHeading.setText(_translate("Dialog", "Modular"))
-        self.lblColorIndicator.setText(_translate("Dialog", "Color Indicator: "))
-        self.lblColorIndicatorValue.setToolTip(_translate("Dialog", "Triggered by percentage value; cells are marked with selected color"))
         self.lblHost.setText(_translate("Dialog", "Host:"))
         self.txtHost.setToolTip(_translate("Dialog", "<html><head/><body><p>The host, i.e. NETWORK.<span style=\" font-weight:700;\">82</span></p></body></html>"))
         self.txtHost.setPlaceholderText(_translate("Dialog", "82"))
@@ -469,6 +446,12 @@ class Ui_Dialog(QtCore.QObject):
         self.txtFullAddress.setToolTip(_translate("Dialog", "<html><head/><body><p>Enter the full machine address, i.e. <span style=\" font-weight:700;\">192.168.1.82</span></p><p>For multiple addresses, separate by comma.</p></body></html>"))
         self.txtFullAddress.setPlaceholderText(_translate("Dialog", "192.168.1.82 OR 192.168.1.82, address_2, ... address_nth"))
         self.btnAddFull.setText(_translate("Dialog", "Add"))
-        self.btnSetColor.setText("...")
 
-
+if __name__ == '__main__':
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    dialog = QtWidgets.QDialog()
+    ui = Ui_Dialog()
+    ui.setupUi(dialog)
+    dialog.show()
+    sys.exit(app.exec())

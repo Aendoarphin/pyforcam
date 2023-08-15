@@ -22,5 +22,5 @@ class Machines:
             self.initial = []
 
         
-    def __str__(self):
-        return f"Machine: ID={self.id}, ToolNum={self.toolNum}, ToolLife={self.toolLife}, Initial={self.initial}"    
+    # def __str__(self):
+    #     return f"Machine: ID={self.id}, ToolNum={self.toolNum}, ToolLife={self.toolLife}, Initial={self.initial}"    
