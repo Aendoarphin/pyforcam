@@ -3,7 +3,6 @@
 styles_main = """
 
     QMainWindow {
-        font-family: Helvetica;
         background-color: rgb(255, 255, 255);
     }
 
