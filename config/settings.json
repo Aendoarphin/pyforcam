@@ -1,1 +1,1 @@
-{"network": "192.168.1.", "ip_list": ["192.168.1.555"], "percentage": 30, "interval": 5, "machine_name_list": ["adsf"], "show_yellow": false}
+{"network": "192.168.1.", "ip_list": ["192.168.1.249", "192.168.1.249"], "percentage": 30, "interval": 5, "machine_name_list": ["aaa", "eee"], "show_yellow": false}

@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MTConnectAssets xmlns:m="urn:mtconnect.org:MTConnectAssets:1.3" xmlns="urn:mtconnect.org:MTConnectAssets:1.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:x="urn:okuma.com:OkumaToolAssets:1.3" xsi:schemaLocation="urn:okuma.com:OkumaToolAssets:1.3 /schemas/OkumaToolAssets_1.3.xsd">
+  <Header creationTime="2023-08-03T18:08:58Z" sender="OKUMAOK-3TH8HCP" instanceId="1689618220" version="1.3.0.17" assetBufferSize="1024" assetCount="38"/>
+  <Assets><CuttingTool serialNumber="104" toolId="123456" timestamp="2023-08-03T18:08:32.9472656Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.104">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="30" limit="0" type="MINUTES">-12</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>104</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">4</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="11" toolId="123456" timestamp="2023-08-03T18:06:28.3173828Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.11">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="250" limit="0" type="MINUTES">101</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>11</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">11</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="10" toolId="123456" timestamp="2023-08-03T17:50:45.4111328Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.10">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="250" limit="0" type="MINUTES">71</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>10</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">10</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="51" toolId="123456" timestamp="2023-08-03T17:10:51.4755859Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.51">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="200" limit="0" type="MINUTES">130</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>51</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">33</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="26" toolId="123456" timestamp="2023-08-03T17:08:26.5039062Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.26">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="293" limit="0" type="MINUTES">22</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>26</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">26</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="38" toolId="123456" timestamp="2023-08-03T17:05:44.8652343Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.38">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="200" limit="0" type="MINUTES">169</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>38</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">8</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="1" toolId="123456" timestamp="2023-08-03T16:49:34.2109375Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.1">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="60" limit="0" type="MINUTES">32</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>1</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">1</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="17" toolId="123456" timestamp="2023-08-03T16:12:58.7285156Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.17">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="100" limit="0" type="MINUTES">14</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>17</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">17</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="14" toolId="123456" timestamp="2023-08-03T16:11:08.7011718Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.14">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="300" limit="0" type="MINUTES">27</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>14</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">14</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="12" toolId="123456" timestamp="2023-08-03T16:07:34.8369140Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.12">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="300" limit="0" type="MINUTES">245</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>12</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">12</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="18" toolId="123456" timestamp="2023-08-03T16:03:38.3085937Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.18">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="600" limit="0" type="MINUTES">121</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>18</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">18</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="24" toolId="123456" timestamp="2023-08-03T15:55:43.0537109Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.24">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="400" limit="0" type="MINUTES">0</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>24</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">125</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="20" toolId="123456" timestamp="2023-08-03T15:50:56.6298828Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.20">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="500" limit="0" type="MINUTES">8</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>20</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">20</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="22" toolId="123456" timestamp="2023-08-03T15:41:36.6621093Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.22">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="100" limit="0" type="MINUTES">90</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>22</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">22</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="15" toolId="123456" timestamp="2023-08-03T15:33:40.9921875Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.15">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="500" limit="0" type="MINUTES">477</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>15</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">15</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="13" toolId="123456" timestamp="2023-08-03T15:19:48.2333984Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.13">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="300" limit="0" type="MINUTES">215</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>13</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">13</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="5" toolId="123456" timestamp="2023-08-03T14:46:01.2812500Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.5">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="60" limit="0" type="MINUTES">21</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>5</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">5</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="30" toolId="123456" timestamp="2023-08-03T13:38:14.2548828Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.30">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="150" limit="0" type="MINUTES">34</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>30</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">30</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="29" toolId="123456" timestamp="2023-08-03T13:36:59.2275390Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.29">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="200" limit="0" type="MINUTES">153</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>29</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">29</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="131" toolId="123456" timestamp="2023-08-03T13:20:16.0468750Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.131">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="300" limit="0" type="MINUTES">251</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>131</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">7</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="9" toolId="123456" timestamp="2023-08-03T10:59:36.4658203Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.9">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="300" limit="0" type="MINUTES">266</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>9</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">9</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="31" toolId="123456" timestamp="2023-07-30T19:18:53.2275390Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.31">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="150" limit="0" type="MINUTES">15</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>31</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">31</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="121" toolId="123456" timestamp="2023-07-17T19:05:05.7246093Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.121">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="100" limit="0" type="MINUTES">100</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>121</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">32</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="500" toolId="123456" timestamp="2023-07-17T18:25:40.9628906Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.500">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>500</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">171</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="911" toolId="123456" timestamp="2023-07-17T18:25:40.8867187Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.911">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>911</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">170</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="90" toolId="123456" timestamp="2023-07-17T18:25:40.8476562Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.90">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>90</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">153</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="101" toolId="123456" timestamp="2023-07-17T18:25:40.7861328Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.101">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>101</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">124</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="74" toolId="123456" timestamp="2023-07-17T18:25:40.6171875Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.74">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="100" limit="0" type="MINUTES">97</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>74</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">28</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="37" toolId="123456" timestamp="2023-07-17T18:25:40.5761718Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.37">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="50" limit="0" type="MINUTES">48</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>37</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">27</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="99" toolId="123456" timestamp="2023-07-17T18:25:40.5224609Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.99">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="50" limit="0" type="MINUTES">48</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>99</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">25</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="55" toolId="123456" timestamp="2023-07-17T18:25:40.4990234Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.55">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="150" limit="0" type="MINUTES">102</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>55</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">24</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="57" toolId="123456" timestamp="2023-07-17T18:25:40.4570312Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.57">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="150" limit="0" type="MINUTES">40</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>57</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">23</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="58" toolId="123456" timestamp="2023-07-17T18:25:40.3886718Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.58">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="195" limit="0" type="MINUTES">155</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>58</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">21</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="21" toolId="123456" timestamp="2023-07-17T18:25:40.3222656Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.21">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="50" limit="0" type="MINUTES">17</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>21</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">19</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="122" toolId="123456" timestamp="2023-07-17T18:25:40.2451171Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.122">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>122</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">16</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="59" toolId="123456" timestamp="2023-07-17T18:25:39.9228515Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.59">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>59</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">6</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="69" toolId="123456" timestamp="2023-07-17T18:25:39.8046875Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.69">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="100" limit="0" type="MINUTES">1</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>69</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">3</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+<CuttingTool serialNumber="2" toolId="123456" timestamp="2023-07-17T18:25:39.7812500Z" deviceUuid="OKUMA.MachiningCenter.123456" assetId="123456.2">
+  <CuttingToolLifeCycle>
+    <CutterStatus>
+      <Status>AVAILABLE</Status>
+    </CutterStatus>
+    <ToolLife countDirection="DOWN" initial="60" limit="0" type="MINUTES">45</ToolLife>
+    <ProgramToolGroup>0</ProgramToolGroup>
+    <ProgramToolNumber>2</ProgramToolNumber>
+    <Location negativeOverlap="0" positiveOverlap="0" type="POT">2</Location>
+  </CuttingToolLifeCycle>
+</CuttingTool>
+</Assets>
+</MTConnectAssets>

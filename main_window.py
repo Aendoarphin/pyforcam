@@ -156,13 +156,13 @@ class Ui_mainWindow(QtCore.QObject):
 
     def fetch_data(self):
         self.extractor.machine_names = self.ui_settings.machine_name_list
-        # self.address_list = self.ui_settings.ip_list
-        self.address_list = [
-            "192.168.1.222",
-            "192.168.1.222",
-            "192.168.1.222",
-            "192.168.1.222",
-            ]
+        self.address_list = self.ui_settings.ip_list
+        # self.address_list = [
+        #     "192.168.1.249",
+        #     "192.168.1.249",
+        #     "192.168.1.249",
+        #     "192.168.1.249",
+        #     ]
         self.extractor.fetch_data(self.address_list, "5000", 1, self.extractor.machine_names)
         self.machines = self.extractor.machines
         self.data_fetched = True
