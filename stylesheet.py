@@ -12,6 +12,22 @@ styles_main = """
         border-radius: 5px;
         padding: 0 10px 0 10px;
     }
+    
+    QPushButton[objectName='btnSortOrder'], QPushButton[objectName='btnStart'] {
+        border-radius: 0px
+    }
+    
+    QPushButton[objectName='btnStop'] {
+        border-top-left-radius: 0px;
+        border-bottom-left-radius: 0px;
+    }
+    
+    QComboBox {
+        width: 100px;
+        border: 1px solid;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
 
     QTableWidget {
         border: 1px solid black;

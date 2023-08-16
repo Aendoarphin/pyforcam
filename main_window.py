@@ -2,11 +2,11 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from settings_window import Ui_Dialog
 from XML import XMLTagExtractor
 from stylesheet import styles_main
-import datetime as dt
-import sys, os, logging
 from background import BackgroundImageWidget
 from log import configure_logging
 from class_utils import NumericTableWidgetItem
+import datetime as dt
+import sys, os, logging
 
 def resource_path(relative_path):
     """Get absolute path to resource, works for dev and for PyInstaller."""
@@ -21,140 +21,154 @@ def resource_path(relative_path):
 class Ui_mainWindow(QtCore.QObject):
     def __init__(self):
         super().__init__()
-        # Init the logger 
         self.logger = logging.getLogger(__name__)
         configure_logging()
-        # XML Extractor object
         self.extractor = XMLTagExtractor()
         self.settings_window = QtWidgets.QDialog()
         self.ui_settings = Ui_Dialog()
         self.ui_settings.setupUi(self.settings_window)
+        self.ui_settings.has_ip.connect(self.enable_buttons)
         self.address_list = []
         self.machines = []
-        # Create a QTimer instance
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.fetch_data_continuously)
-        # Flag to indicate whether the data has been fetched
         self.data_fetched = False
-        # Loading element for gui
         self.loading_dots = 0
-        self.loading_animation_running = False  # Add a flag to track the loading animation state
-        # Enables/disables start/stop buttons based on signal
-        self.ui_settings.has_ip.connect(self.enable_buttons)
-        # Store float value of machine completion percentage
+        self.loading_animation_running = False
         self.table_percent = 0
+        self.sort_mode = QtCore.Qt.SortOrder.AscendingOrder
+        self.sorted_column = 2
         
     def listen(self):
+        self.btnSortOrder.setEnabled(False)
+        self.comboColumn.setEnabled(False)
         self.tableView.hideColumn(3)
         self.ui_settings.check_ip()
         self.extractor.timed_out.connect(lambda message: [self.stop_fetching_data(message)])
         self.actionOptions.triggered.connect(lambda: [self.update_settings_list(), self.open_settings()])
         self.btnStart.clicked.connect(self.start_fetching_data)
         self.btnStop.clicked.connect(self.stop_fetching_data)
-        # self.timer.start(self.ui_settings.interval*1000)  # Start the timer initially
+        self.btnSortOrder.clicked.connect(lambda: [self.change_sort_order()])
+        self.comboColumn.currentTextChanged.connect(lambda: [self.change_sort_type()])
+        
+    def change_sort_order(self):
+        selected = self.comboColumn.currentText()
+        if selected == "Tool Life": self.sorted_column = 2
+        elif selected == "Percentage": self.sorted_column = 3
+        else: self.sorted_column = 1
+        if self.btnSortOrder.text() == "↑":
+            self.sort_mode = QtCore.Qt.SortOrder.DescendingOrder
+            self.btnSortOrder.setText("↓")
+        else:
+            self.sort_mode = QtCore.Qt.SortOrder.AscendingOrder
+            self.btnSortOrder.setText("↑")
+        self.fetch_data()
+        
+    def change_sort_type(self):
+        selected = self.comboColumn.currentText()
+        if selected == "Tool Life": self.sorted_column = 2
+        elif selected == "Percentage": self.sorted_column = 3
+        else: self.sorted_column = 1
+        self.fetch_data()
        
     def update_settings_list(self):
         stored_ips = self.ui_settings.ip_list
-        temp_items = self.ui_settings.listAddress.findItems("", QtCore.Qt.MatchFlag.MatchContains)  # Get all items in the list widget
+        stored_machine_names = self.ui_settings.machine_name_list
+        temp_items = self.ui_settings.listAddress.findItems("", QtCore.Qt.MatchFlag.MatchContains)
         
         for widget_item in temp_items:
-            if widget_item.text() not in stored_ips:
-                row = self.ui_settings.listAddress.row(widget_item)  # Get the row index of the item
-                self.ui_settings.listAddress.takeItem(row)  # Remove the item from the list widget
+            ip_address, machine_name = self.parse_item_text(widget_item.text())
+            
+            if ip_address not in stored_ips or machine_name not in stored_machine_names:
+                row = self.ui_settings.listAddress.row(widget_item)
+                self.ui_settings.listAddress.takeItem(row)
+
+    def parse_item_text(self, item_text):
+        parts = item_text.split(', Machine Name: ')
+        ip_address = parts[0].replace("IP: ", "")
+        machine_name = parts[1]
+        return ip_address, machine_name
 
     def enable_buttons(self, signal):
         self.btnStart.setEnabled(signal)
         self.btnStop.setEnabled(signal)
             
     def start_loading(self):
-        if not self.loading_animation_running:  # Check if the animation is not already running
-            # Create a QTimer instance for the animation
+        if not self.loading_animation_running:
             self.loading_timer = QtCore.QTimer(self)
             self.loading_timer.timeout.connect(self.update_loading)
-            # Start the timer with an interval of x milliseconds (adjust as needed)
             self.loading_timer.start(300)
-            self.loading_animation_running = True  # Set the flag to indicate that the animation is running
+            self.loading_animation_running = True
 
     def stop_loading(self):
-        if self.loading_animation_running:  # Check if the animation is running
+        if self.loading_animation_running:
             self.loading_timer.stop()
-            self.notify("")  # Set the label to an empty string to clear the "Running..." message
-            self.loading_animation_running = False  # Set the flag to indicate that the animation is not running
+            self.notify("")
+            self.loading_animation_running = False
 
     def update_loading(self):
-        # Increment the number of dots in the animation
         self.loading_dots += 1
         if self.loading_dots > 3:
             self.loading_dots = 1
-        # Update the label with the loading dots
         self.notify("Running" + "." * self.loading_dots)
 
     def notify(self, message):
         self.lblLogDesc.setText(message)
             
     def start_fetching_data(self):
-        try:
-            if not self.data_fetched:
-                self.notify(f"Operation initiated")
-                # Call the fetch_data method to fetch data immediately
-                self.fetch_data()
-                # Set the data_fetched flag to True
-                self.data_fetched = True
-                self.timer.start(self.ui_settings.interval*1000)
-                self.set_timestamp()
-        except Exception as e: print(f"Error: {e}")
+        if not self.data_fetched:
+            self.notify("Operation initiated")
+            self.fetch_data()
+            self.data_fetched = True
+            self.btnSortOrder.setEnabled(True)
+            self.comboColumn.setEnabled(True)
+            self.timer.start(self.ui_settings.interval * 1000)
+            self.set_timestamp()
             
     def stop_fetching_data(self, custom_message=None):
         if self.data_fetched:
-            # Stop the timer
             self.timer.stop()
-            # Set the data_fetched flag to False after stopping the timer
             self.data_fetched = False
-            self.stop_loading()  # Stop the loading dots animation
-            if custom_message != None:
-                if custom_message == False:
-                    self.notify("Operation terminated")
-                else: self.notify(f"Operation terminated. Error: {custom_message}")
-            else: self.notify("Operation terminated")
+            self.stop_loading()
+            self.btnSortOrder.setEnabled(False)
+            self.comboColumn.setEnabled(False)
+            if custom_message in [None, False]:
+                self.notify("Operation terminated")
+            else:
+                self.notify(f"Operation terminated. {custom_message}")
+
 
     def fetch_data_continuously(self):
         if self.data_fetched:
-            # Call the fetch_data method with the appropriate mode
-            self.start_loading()  # Start the loading dots animation
-            self.fetch_data()  # You can modify the mode as needed
+            self.start_loading()
+            self.fetch_data()
             self.set_timestamp()
-            
+
     def set_timestamp(self):
         current_time = dt.datetime.now()
         hour = current_time.hour
         minute = current_time.minute
         self.lblTimeStamp.setText(f"Last Data Request: {hour:02d}:{minute:02d}")
-        
+         
     def closeEvent(self, event):
-        # Override the closeEvent to stop the timer when the window is closed
         self.stop_fetching_data()
         event.accept()
 
     def fetch_data(self):
-        # self.address_list = self.ui_settings.ip_list
-        self.address_list = [
-            "http://192.168.1.222:5000/sample-files",
-            "http://192.168.1.222:5000/sample-files",
-            "http://192.168.1.222:9000/sample-files",
-            "http://192.168.1.222:9000/sample-files",
-            ]
-
-        self.extractor.fetch_data(self.address_list,  1)
-        
+        self.extractor.machine_names = self.ui_settings.machine_name_list
+        self.address_list = self.ui_settings.ip_list
+        # self.address_list = [
+        #     "192.168.1.222",
+        #     "192.168.1.222",
+        #     "192.168.1.222",
+        #     "192.168.1.222",
+        #     ]
+        self.extractor.fetch_data(self.address_list, "5000", 1, self.extractor.machine_names)
         self.machines = self.extractor.machines
-        
-        # Set the data_fetched flag to True after data is fetched
         self.data_fetched = True
+        self.update_table(show_yellow=self.ui_settings.yellow)
 
-        # Update the table when data is fetched
-        self.update_table()
-
-    def update_table(self):
+    def update_table(self, show_yellow=False):
         machine_count = len(self.machines)
         if machine_count == 0:
             self.logger.info("No machines detected")
@@ -164,71 +178,78 @@ class Ui_mainWindow(QtCore.QObject):
 
         for machine_index in range(machine_count):
             tool_num_list = self.machines[machine_index].toolNum
-            tool_count = len(tool_num_list)  # Calculate tool_count for the current machine
+            tool_count = len(tool_num_list)
             tool_life_list = self.machines[machine_index].toolLife
             initial_list = self.machines[machine_index].initial
 
             for i in range(tool_count):
-                self.tableView.insertRow(row_index)
-                self.tableView.setRowHeight(row_index, 75)
-                tn_item = QtWidgets.QTableWidgetItem(str(tool_num_list[i]))
-                m_item = NumericTableWidgetItem(str(self.machines[machine_index].id))
-                tl_item = NumericTableWidgetItem(tool_life_list[i])
-                
-                self.tableView.setItem(row_index, 0, tn_item)
-                self.tableView.setItem(row_index, 1, m_item)
-                self.tableView.setItem(row_index, 2, tl_item)
                 tool_life = tool_life_list[i]
                 initial_life = initial_list[i]
-                critical = QtGui.QColor(255, 185, 185, 190)
-                warning = QtGui.QColor(255, 255, 153, 190)
-                item = QtWidgets.QTableWidgetItem("NULL")
-                item2 = QtWidgets.QTableWidgetItem("NULL")
-                percent_item = QtWidgets.QTableWidgetItem()
-                percent_item.setBackground(critical)
-                for twi in [tn_item, m_item, tl_item, item, item2, percent_item]: 
-                    twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-
                 if tool_life != 'NULL' and initial_life != 'NULL':
                     try:
                         tool_life_int = int(tool_life)
                         initial_life_int = int(initial_life)
                         if initial_life_int != 0:
                             float_percent = tool_life_int / initial_life_int
+                            tn_item = QtWidgets.QTableWidgetItem(tool_num_list[i])
+                            m_item = QtWidgets.QTableWidgetItem(self.machines[machine_index].machine_name)
+                            tl_item = NumericTableWidgetItem(tool_life_list[i])
+
+                            self.tableView.insertRow(row_index)
+                            self.tableView.setRowHeight(row_index, 75)
+                            self.tableView.setItem(row_index, 0, tn_item)
+                            self.tableView.setItem(row_index, 1, m_item)
+                            self.tableView.setItem(row_index, 2, tl_item)
+
+                            critical = QtGui.QColor(255, 185, 185, 190)
+                            warning = QtGui.QColor(255, 255, 153, 190)
+                            item = QtWidgets.QTableWidgetItem("NULL")
+                            item2 = QtWidgets.QTableWidgetItem("NULL")
+                            percent_item = QtWidgets.QTableWidgetItem()
+                            percent_item.setBackground(critical)
+
+                            for twi in [tn_item, m_item, tl_item, item, item2, percent_item]:
+                                twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
                             if float_percent <= 0:
                                 state_item = QtWidgets.QTableWidgetItem("NG")
                                 percent_item.setBackground(critical)
-                            elif float_percent <= self.ui_settings.percentage * .01:
+                            elif float_percent <= self.ui_settings.percentage * 0.01:
                                 state_item = QtWidgets.QTableWidgetItem("OK")
                                 percent_item.setBackground(warning)
-                            elif float_percent > self.ui_settings.percentage * .01:
-                                state_item = QtWidgets.QTableWidgetItem("OK")
-                                percent_item.setBackground(QtGui.QColor(0,0,0,0))
                             else:
-                                state_item = None
+                                state_item = QtWidgets.QTableWidgetItem("OK")
+                                percent_item.setBackground(QtGui.QColor(0, 0, 0, 0))
+
                             item.setText("{:.2f}".format(float_percent))
                             if state_item:
                                 state_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                                 self.tableView.setItem(row_index, 5, state_item)
-                        else:
-                            percent_item.setText("INITIAL LIFE 0")
-                        self.tableView.setItem(row_index, 3, item)
-                        percent_item.setText("{:.0%}".format(float_percent))
-                        self.tableView.setItem(row_index, 4, percent_item)
-                    except ValueError:
-                        self.tableView.setItem(row_index, 4, item)
-                        self.tableView.setItem(row_index, 5, item2)
-                else:
-                    self.tableView.setItem(row_index, 4, item)
-                    self.tableView.setItem(row_index, 5, item2)
 
-                row_index += 1
+                            self.tableView.setItem(row_index, 3, item)
+                            percent_item.setText("{:.0%}".format(float_percent))
+                            self.tableView.setItem(row_index, 4, percent_item)
+
+                            if show_yellow:
+                                if float_percent < self.ui_settings.percentage * 0.01 and float_percent > 0:
+                                    self.tableView.showRow(row_index)
+                                else:
+                                    self.tableView.hideRow(row_index)
+                            else:
+                                self.tableView.showRow(row_index)
+
+                        row_index += 1
+
+                    except ValueError:
+                        pass
+                else:
+                    pass
 
         self.tableView.viewport().update()
-        self.tableView.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)
+        # Tool No. 0, Machine 1, Tool Life 2, % 3
+        self.tableView.sortByColumn(self.sorted_column, self.sort_mode)
         self.tableView.setSortingEnabled(False)
         self.logger.info(f"Table updated | Total IP Addresses: {len(self.address_list)}")
-        
 
     def open_settings(self):
         self.settings_window.show()
@@ -266,11 +287,22 @@ class Ui_mainWindow(QtCore.QObject):
         self.lblLog.setFont(font)
         self.lblLog.setObjectName("lblLog")
         self.gridLayout_2.addWidget(self.lblLog, 0, 0, 1, 1)
+        
+        self.comboColumn = QtWidgets.QComboBox(parent=self.centralwidget)
+        self.comboColumn.addItems(["Tool Life", "Percentage", "Machine Name"])
+        self.comboColumn.setObjectName("comboColumn")
+        self.gridLayout_2.addWidget(self.comboColumn, 0, 3, 1, 1)
+        
+        self.btnSortOrder = QtWidgets.QPushButton(parent=self.centralwidget)
+        self.btnSortOrder.setMaximumSize(QtCore.QSize(149, 149))
+        self.btnSortOrder.setObjectName("btnSortOrder")
+        self.gridLayout_2.addWidget(self.btnSortOrder, 0, 4, 1, 1)
+        
         self.btnStop = QtWidgets.QPushButton(parent=self.centralwidget)
         self.btnStop.setMaximumSize(QtCore.QSize(149, 149))
         self.btnStop.setStyleSheet("background-color: rgb(255, 184, 185);")
         self.btnStop.setObjectName("btnStop")
-        self.gridLayout_2.addWidget(self.btnStop, 0, 4, 1, 1)
+        self.gridLayout_2.addWidget(self.btnStop, 0, 6, 1, 1)
 
         
         self.tableView = QtWidgets.QTableWidget(parent=self.centralwidget)
@@ -321,12 +353,12 @@ class Ui_mainWindow(QtCore.QObject):
         self.tableView.verticalHeader().setDefaultSectionSize(30)
         self.tableView.verticalHeader().setHighlightSections(True)
         self.tableView.verticalHeader().setStretchLastSection(True)
-        self.gridLayout_2.addWidget(self.tableView, 1, 0, 1, 5)        
+        self.gridLayout_2.addWidget(self.tableView, 1, 0, 1, 7)        
         self.btnStart = QtWidgets.QPushButton(parent=self.centralwidget)
         self.btnStart.setMaximumSize(QtCore.QSize(149, 149))
         self.btnStart.setStyleSheet("background-color: rgb(212, 255, 210)")
         self.btnStart.setObjectName("btnStart")
-        self.gridLayout_2.addWidget(self.btnStart, 0, 3, 1, 1)
+        self.gridLayout_2.addWidget(self.btnStart, 0, 5, 1, 1)
         self.lblLogDesc = QtWidgets.QLabel(parent=self.centralwidget)
         self.lblLogDesc.setMinimumSize(QtCore.QSize(0, 0))
         self.lblLogDesc.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -374,6 +406,7 @@ class Ui_mainWindow(QtCore.QObject):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "Tool Life Utility"))
         self.lblLog.setText(_translate("mainWindow", "Log:"))
+        self.btnSortOrder.setText(_translate("mainWindow", "↑"))
         self.btnStop.setText(_translate("mainWindow", "Stop"))
         item = self.tableView.horizontalHeaderItem(0)
         item.setText(_translate("mainWindow", "Tool No."))

@@ -11,9 +11,12 @@ class Ui_Dialog(QtCore.QObject):
         self.host = ""
         self.full_address = ""
         self.ip_list = []
+        self.machine_name = ""
+        self.machine_name_list = []
         
         self.percentage = .3
         self.interval = 0
+        self.yellow = False
         self.data = {}
         
         self.normal = "background-color: rgb(255,255,255)"
@@ -25,19 +28,20 @@ class Ui_Dialog(QtCore.QObject):
     
     def listen(self, Dialog):
         self.txtHost.setEnabled(False)
+        self.txtMachineName.setEnabled(False)
         self.load_settings()
         self.interval = int(self.spinInterval.value())
         self.percentage = self.spinPercent.value()
-        # Events
+        
         self.spinInterval.valueChanged.connect(lambda value: self.set_interval(value))
         self.spinPercent.valueChanged.connect(lambda value: self.set_percentage(value))
+        
         
         self.btnSetModular.clicked.connect(lambda: self.enable_network_input())
 
         self.btnPlus.clicked.connect(lambda: self.update_list(self.btnPlus.text()))
         self.btnMinus.clicked.connect(lambda: self.update_list(self.btnMinus.text()))
-        self.btnAddFull.clicked.connect(lambda: self.update_list(self.btnAddFull.text()))
-        
+        self.checkYellow.stateChanged.connect(lambda: self.set_yellow())
         self.var_info = f"Interval: {self.interval}s\nPercentage:{self.percentage}"
 
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Apply).clicked.connect(lambda: 
@@ -61,11 +65,13 @@ class Ui_Dialog(QtCore.QObject):
         self.txtNetwork2.clear()
         self.txtNetwork3.clear()
         self.txtHost.clear()
+        self.txtMachineName.clear()
         self.spinPercent.setValue(30)
         self.spinInterval.setValue(30)
-        self.txtFullAddress.clear()
         self.listAddress.clear()
         self.ip_list.clear()
+        self.machine_name_list.clear()
+        self.checkYellow.setChecked(False)
     
     def set_interval(self, value):
         self.interval = int(value)
@@ -73,6 +79,10 @@ class Ui_Dialog(QtCore.QObject):
     def set_percentage(self, value):
         self.percentage = value
         self.update_display()
+        
+    def set_yellow(self):
+        if self.checkYellow.isChecked(): self.yellow = True
+        else: self.yellow = False
         
     def update_display(self):
         self.var_info = f"Interval: {self.interval}s\nPercentage: {self.percentage}"
@@ -87,85 +97,70 @@ class Ui_Dialog(QtCore.QObject):
         
     def update_list(self, mode: str):
         self.host = self.txtHost.text()
+        self.machine_name = self.txtMachineName.text()
         self.full_address = self.network + self.host
-        full_addresses = self.txtFullAddress.text()
         if mode == "+":
-            if self.network != "" and self.host != "":
-                self.listAddress.addItem(self.full_address)
+            if self.network != "" and self.host != "" and self.machine_name != "":
+                self.listAddress.addItem(f"IP: {self.full_address}, Machine Name: {self.machine_name}")
                 self.ip_list.append(self.full_address)
+                self.machine_name_list.append(self.machine_name)
                 self.txtHost.clear()
+                self.txtMachineName.clear()
                 self.txtHost.setStyleSheet(self.normal)
+                self.txtMachineName.setStyleSheet(self.normal)
                 self.print_list()
-                print(f"ADDRESS WAS ADDED: {self.network + self.host}")
+                print(f"ADDRESS WAS ADDED: {self.ip_list}")
+                print(f"MACHINE NAME WAS ADDED: {self.machine_name_list}")
                 self.full_address = ""
                 self.host = ""
-            else: self.txtHost.setStyleSheet(self.error)
-        if mode == "Add":
-            list_from_text = self.get_list_from_text(self.txtFullAddress.text())
-            if self.txtFullAddress.text() != "" and self.check_full_address(full_addresses):
-                self.listAddress.addItems(list_from_text)
-                self.ip_list.extend(list_from_text)  # Use 'extend' to append individual elements
-                self.txtFullAddress.clear()
-                self.txtFullAddress.setStyleSheet(self.normal)
-                self.print_list()
-                print(f"ADDRESSES WERE ADDED: {full_addresses}")
+                self.machine_name = ""
             else: 
-                self.txtFullAddress.setStyleSheet(self.error)
+                self.txtHost.setStyleSheet(self.error)
+                self.txtMachineName.setStyleSheet(self.error)
 
         if mode == "-":
-            self.txtFullAddress.setStyleSheet(self.normal)
             self.remove_sel()
             self.print_list()
             print(f"ITEM REMOVED")
-            
-    def check_full_address(self, address_input):
-        # Split the input by commas and remove any leading/trailing whitespace
-        addresses = [address.strip() for address in address_input.split(',')]
-        
-        # Use a regular expression to check each address separately
-        for address in addresses:
-            if not re.match(r'^(\d{1,3}\.){3}\d{1,3}$', address):
-                return False
-        
-        return True
     
     def print_list(self):
         print("\nDATA:\n")
-        for item in self.ip_list:
-            print(f"{item}\n")
-            
-    def get_list_from_text(self, full_addresses: str):
-        # Split the input string by comma and strip any whitespace around each IP address
-        addresses = [address.strip() for address in full_addresses.split(',')]
-        self.txtFullAddress.setStyleSheet(self.normal)
-
-        # If there is only one IP address, return it as a list with a single item
-        if len(addresses) == 1:
-            self.txtFullAddress.setStyleSheet(self.normal)
-            return addresses
-
-        return addresses
+        for ip in self.ip_list:
+            print(ip)
+        for m in self.machine_name_list:
+            print(m)
 
     def remove_sel(self):
         # Retrieve the selected items from the QListWidget
-        listItems = self.listAddress.selectedItems()
+        selected_items = self.listAddress.selectedItems()
         
         # If no items are selected, return without doing anything
-        if not listItems:
+        if not selected_items:
             return
         
-        # Iterate through each selected item and remove it from the QListWidget
-        for item in listItems:
+        # Iterate through each selected item and remove it from the QListWidget and lists
+        for item in selected_items:
             # Get the text of the selected item
             item_text = item.text()
             
-            # Find the index of the item in the Python list and remove it
-            if item_text in self.ip_list:
-                self.ip_list.remove(item_text)
+            # Split the item text into IP address and machine name
+            ip_address, machine_name = item_text.split(', Machine Name: ', 1)
+            
+            # Remove the IP address from the ip_list if it exists
+            if ip_address in self.ip_list:
+                self.ip_list.remove(ip_address)
+            
+            # Remove the machine name from the machine_name_list if it exists
+            if machine_name in self.machine_name_list:
+                self.machine_name_list.remove(machine_name)
             
             # Remove the item from the QListWidget
-            self.listAddress.takeItem(self.listAddress.row(item))
-            del item
+            row = self.listAddress.row(item)
+            self.listAddress.takeItem(row)
+        
+        # Clear the selected items list
+        self.listAddress.clearSelection()
+
         
     def enable_network_input(self):
         input_value = [self.txtNetwork1.text(), self.txtNetwork2.text(), self.txtNetwork3.text()]
@@ -174,7 +169,9 @@ class Ui_Dialog(QtCore.QObject):
         if "" in input_value:
             for obj in input_obj:
                 obj.setStyleSheet(self.error)
-            if self.txtNetwork1.isEnabled() == True : self.txtHost.setEnabled(False)
+            if self.txtNetwork1.isEnabled() == True : 
+                self.txtHost.setEnabled(False)
+                self.txtMachineName.setEnabled(False)
             self.network = ""
             print(f"NETWORK ADDRESS WAS RESET: {self.network}")
         elif all(input != "" for input in input_value):
@@ -184,6 +181,7 @@ class Ui_Dialog(QtCore.QObject):
                     obj.setEnabled(True)
                     obj.setText("")
                 self.txtHost.setEnabled(False)
+                self.txtMachineName.setEnabled(False)
                 self.btnSetModular.setText("Set")
                 self.network = ""
             else:
@@ -192,6 +190,7 @@ class Ui_Dialog(QtCore.QObject):
                     obj.setEnabled(False)
                 self.network = self.txtNetwork1.text() + "." + self.txtNetwork2.text() + "." + self.txtNetwork3.text() + "."
                 self.txtHost.setEnabled(True)
+                self.txtMachineName.setEnabled(True)
                 self.btnSetModular.setText("Change")
                 print(f"NETWORK ADDRESS WAS SET: {self.network}")
     
@@ -200,7 +199,9 @@ class Ui_Dialog(QtCore.QObject):
             "network": self.network,
             "ip_list": self.ip_list,
             "percentage": self.percentage,
-            "interval": self.interval
+            "interval": self.interval,
+            "machine_name_list": self.machine_name_list,
+            "show_yellow": self.yellow
         }
         # Create the directory if it doesn't exist
         directory = "./config"
@@ -222,9 +223,17 @@ class Ui_Dialog(QtCore.QObject):
                 self.txtNetwork1.setText(parts[0])
                 self.txtNetwork2.setText(parts[1])
                 self.txtNetwork3.setText(parts[2])
+            
+            # Load the ip_list and machine_name_list from the loaded data
             self.ip_list = self.data.get("ip_list", self.ip_list)
-            for item in self.ip_list:
-                self.listAddress.addItem(item)
+            self.machine_name_list = self.data.get("machine_name_list", self.machine_name_list)
+            
+            # Populate the QListWidget with items from ip_list and machine_name_list
+            for ip, machine_name in zip(self.ip_list, self.machine_name_list):
+                item_text = f"{ip}, Machine Name: {machine_name}"
+                self.listAddress.addItem(item_text)
+            
+            # Load other settings
             self.percentage = self.data.get("percentage", self.percentage)
             if self.percentage != "":
                 try:
@@ -234,17 +243,21 @@ class Ui_Dialog(QtCore.QObject):
                 except ValueError:
                     # Not a valid float, set the value as is
                     self.spinPercent.setValue(self.percentage)
-            self.interval = self.data.get("interval", self.interval)
-            if self.percentage != "":
-                self.spinInterval.setValue(self.interval)
-            current_settings = f"Network:{self.network}\nIP List: {self.ip_list}\nPercentage: {self.percentage}\nInterval: {self.interval}\nData: {self.data}"
             
+            self.interval = self.data.get("interval", self.interval)
+            if self.interval != "": self.spinInterval.setValue(self.interval)
+                
+            self.yellow = self.data.get("show_yellow", self.yellow)
+            if self.yellow in [True, False]: self.checkYellow.setChecked(self.yellow)
+            else: self.checkYellow.setChecked(False)
+            
+            current_settings = f"Network:{self.network}\nIP List: {self.ip_list}\nMachine Name List: {self.machine_name_list}\nPercentage: {self.percentage}\nInterval: {self.interval}\nData: {self.data}"
             self.show_message(current_settings, True)
         except FileNotFoundError:
             # If settings.json is not found, continue with default values
             self.show_message("No settings detected. Assign addresses in settings", True)
             print("Settings file not found. Using default settings.")
-            
+                
     def check_ip(self):
         # Set the flag to check presence of ip addresses
         if self.ip_list != []:
@@ -333,7 +346,7 @@ class Ui_Dialog(QtCore.QObject):
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Apply|QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults)
         self.buttonBox.setObjectName("buttonBox")
-        self.gridLayout.addWidget(self.buttonBox, 9, 0, 1, 1)
+        self.gridLayout.addWidget(self.buttonBox, 10, 0, 1, 1)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.gridLayout.addLayout(self.horizontalLayout_2, 6, 0, 1, 1)
@@ -345,11 +358,17 @@ class Ui_Dialog(QtCore.QObject):
         self.lblHost.setObjectName("lblHost")
         self.horizontalLayout_9.addWidget(self.lblHost)
         self.txtHost = QtWidgets.QLineEdit(parent=Dialog)
-        self.txtHost.setMinimumSize(QtCore.QSize(162, 0))
-        self.txtHost.setMaximumSize(QtCore.QSize(162, 16777215))
+        self.txtHost.setMinimumSize(QtCore.QSize(30, 0))
+        self.txtHost.setMaximumSize(QtCore.QSize(30, 16777215))
         self.txtHost.setMaxLength(3)
         self.txtHost.setObjectName("txtHost")
+        self.txtMachineName = QtWidgets.QLineEdit(parent=Dialog)
+        self.txtMachineName.setMinimumSize(QtCore.QSize(60, 0))
+        self.txtMachineName.setMaximumSize(QtCore.QSize(60, 16777215))
+        self.txtMachineName.setMaxLength(10)
+        self.txtMachineName.setObjectName("txtMachineName")
         self.horizontalLayout_9.addWidget(self.txtHost)
+        self.horizontalLayout_9.addWidget(self.txtMachineName)
         self.btnPlus = QtWidgets.QPushButton(parent=Dialog)
         self.btnPlus.setMinimumSize(QtCore.QSize(38, 0))
         self.btnPlus.setMaximumSize(QtCore.QSize(38, 16777215))
@@ -376,35 +395,18 @@ class Ui_Dialog(QtCore.QObject):
         self.spinInterval.setEnabled(True)
         self.horizontalLayout_9.addWidget(self.spinInterval)
         self.gridLayout.addLayout(self.horizontalLayout_9, 2, 0, 1, 1)
-        self.lblHeading2 = QtWidgets.QLabel(parent=Dialog)
-        self.lblHeading2.setObjectName("lblHeading2")
-        self.gridLayout.addWidget(self.lblHeading2, 4, 0, 1, 1)
+        self.checkYellow = QtWidgets.QCheckBox(parent=Dialog)
+        self.checkYellow.setText("Show Yellows Only")
+        self.checkYellow.setObjectName("checkYellow")
+        self.gridLayout.addWidget(self.checkYellow, 8, 0, 1, 1)
         self.listAddress = QtWidgets.QListWidget(parent=Dialog)
         self.listAddress.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         self.listAddress.setObjectName("listAddress")
-        self.gridLayout.addWidget(self.listAddress, 8, 0, 1, 1)
+        self.gridLayout.addWidget(self.listAddress, 9, 0, 1, 1)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.lblFullAddress = QtWidgets.QLabel(parent=Dialog)
-        self.lblFullAddress.setObjectName("lblFullAddress")
-        self.lblFullAddress.setMinimumSize(60, 0)
-        self.horizontalLayout.addWidget(self.lblFullAddress)
-        self.txtFullAddress = QtWidgets.QLineEdit(parent=Dialog)
-        self.txtFullAddress.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.txtFullAddress.setObjectName("txtFullAddress")
-        self.horizontalLayout.addWidget(self.txtFullAddress)
-        self.btnAddFull = QtWidgets.QPushButton(parent=Dialog)
-        self.btnAddFull.setMinimumSize(QtCore.QSize(82, 0))
-        self.btnAddFull.setObjectName("btnAddFull")
-        self.horizontalLayout.addWidget(self.btnAddFull)
         self.gridLayout.addLayout(self.horizontalLayout, 5, 0, 1, 1)
-        self.line_2 = QtWidgets.QFrame(parent=Dialog)
-        self.line_2.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-        self.line_2.setObjectName("line_2")
-        self.gridLayout.addWidget(self.line_2, 7, 0, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout, 0, 0, 1, 1)
-        
         txtboxes = [self.txtNetwork1, self.txtNetwork2, self.txtNetwork3, self.txtHost]
         int_validator = QtGui.QIntValidator(self)
         for w in txtboxes: w.setValidator(int_validator)
@@ -432,20 +434,16 @@ class Ui_Dialog(QtCore.QObject):
         self.spinPercent.setToolTip(_translate("Dialog", "Value determines when color indicator activates"))
         self.spinPercent.setSuffix(_translate("Dialog", " %"))
         self.lblHeading.setText(_translate("Dialog", "Modular"))
-        self.lblHost.setText(_translate("Dialog", "Host:"))
+        self.lblHost.setText(_translate("Dialog", "Host/Machine Name:"))
         self.txtHost.setToolTip(_translate("Dialog", "<html><head/><body><p>The host, i.e. NETWORK.<span style=\" font-weight:700;\">82</span></p></body></html>"))
         self.txtHost.setPlaceholderText(_translate("Dialog", "82"))
+        self.txtMachineName.setPlaceholderText(_translate("Dialog", "MA-$"))
         self.btnPlus.setText(_translate("Dialog", "+"))
         self.btnMinus.setText(_translate("Dialog", "-"))
         self.label_2.setText(_translate("Dialog", "Fetch interval: "))
         self.spinInterval.setToolTip(_translate("Dialog", "Value determines time between data requests"))
         self.spinInterval.setSuffix(_translate("Dialog", " s"))
-        self.lblHeading2.setText(_translate("Dialog", "Full Address (separate multiple entries with comma i.e. ip1, ip2, ... ip10)"))
         self.listAddress.setSortingEnabled(True)
-        self.lblFullAddress.setText(_translate("Dialog", "IP Address: "))
-        self.txtFullAddress.setToolTip(_translate("Dialog", "<html><head/><body><p>Enter the full machine address, i.e. <span style=\" font-weight:700;\">192.168.1.82</span></p><p>For multiple addresses, separate by comma.</p></body></html>"))
-        self.txtFullAddress.setPlaceholderText(_translate("Dialog", "192.168.1.82 OR 192.168.1.82, address_2, ... address_nth"))
-        self.btnAddFull.setText(_translate("Dialog", "Add"))
 
 if __name__ == '__main__':
     import sys
