@@ -66,8 +66,8 @@ class XMLTagExtractor(QtCore.QObject):
         self.machines = []
 
         def fetch_thread(address, port, id, machine_name):
-            # url = f"http://{address}:{port}/sample-files"  # TEST URL
-            url = f"http://{address}:{port}/assets"  # LIVE URL
+            url = f"http://{address}:{port}/sample-files"  # TEST URL
+            # url = f"http://{address}:{port}/assets"  # LIVE URL
             try:
                 self.retrieve_cutting_tool_info(self.get_xml(url), id, machine_name)
                 #self.logger.info(f"Data fetched for machine ID {id} from {url}")
