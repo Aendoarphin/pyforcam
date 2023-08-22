@@ -1,6 +1,6 @@
 
 class Machines:
-    def __init__(self, id=None, toolNum=None, toolLife=None, initial=None, machine_name=None):
+    def __init__(self, id=None, toolNum=None, toolLife=None, initial=None, machine_name=None, location=None):
         if id is not None:
             self.id = id
         else:
@@ -24,4 +24,8 @@ class Machines:
             self.machine_name = machine_name
         else:
             self.machine_name = "NULL"
+        if location is not None:
+            self.location = location
+        else:
+            self.location = []
           

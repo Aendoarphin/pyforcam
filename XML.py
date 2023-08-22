@@ -17,6 +17,7 @@ class XMLTagExtractor(QtCore.QObject):
         self.get_content = get_content
         self.machines = []
         self.machine_names = []
+        self.namespace = './/{urn:mtconnect.org:MTConnectAssets:1.3}'
         self.lock = threading.Lock()
         self.logger = logging.getLogger(__name__)
         configure_logging()  # Call the logging configuration once
@@ -35,20 +36,25 @@ class XMLTagExtractor(QtCore.QObject):
 
     def retrieve_cutting_tool_info(self, xml_string, id, machine_name):
         root = ET.fromstring(xml_string)
-        cutting_tools = root.findall('.//{urn:mtconnect.org:MTConnectAssets:1.3}CuttingTool')
+        cutting_tools = root.findall(f'{self.namespace}CuttingTool')
 
         new_machine = Machines()
         for cutting_tool in cutting_tools:
-            tool_life_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ToolLife')
+            tool_life_element = cutting_tool.find(f'{self.namespace}ToolLife')
             tool_life = tool_life_element.text if tool_life_element is not None else 'NULL'
             initial_life = tool_life_element.attrib.get('initial', 'NULL') if tool_life_element is not None else 'NULL'
 
-            program_tool_number_element = cutting_tool.find('.//{urn:mtconnect.org:MTConnectAssets:1.3}ProgramToolNumber')
+            program_tool_number_element = cutting_tool.find(f'{self.namespace}ProgramToolNumber')
             program_tool_number = program_tool_number_element.text if program_tool_number_element is not None else 'NULL'
+
+            location_element = cutting_tool.find(f'{self.namespace}Location')
+            location = location_element.text if location_element is not None else 'NULL'
 
             new_machine.toolLife.append(tool_life)
             new_machine.toolNum.append(program_tool_number)
             new_machine.initial.append(initial_life)
+            new_machine.location.append(location)  # Adding Location information
+
         new_machine.machine_name = machine_name
         new_machine.id = id
         with self.lock:
@@ -56,9 +62,10 @@ class XMLTagExtractor(QtCore.QObject):
             index_to_insert = 0
             while (index_to_insert < len(self.machines)) and (self.machines[index_to_insert].id < id):
                 index_to_insert += 1
-            
+
             # Insert the new_machine at the appropriate index
             self.machines.insert(index_to_insert, new_machine)
+
             
 ############################## MODULAR URL ##############################################
 
@@ -94,8 +101,8 @@ class XMLTagExtractor(QtCore.QObject):
         for thread in threads:
             thread.join()
         
-        # for machine in self.machines:
-        #     print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id} | Machine Names: {machine.machine_name}")
+        for machine in self.machines:
+            print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id} | Machine Names: {machine.machine_name} | POTs: {len(machine.location)}")
             
 ############################## MODULAR URL ##############################################
     
@@ -127,7 +134,7 @@ class XMLTagExtractor(QtCore.QObject):
     #         thread.join()
 
     #     for machine in self.machines:
-    #         print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id} | Machine Names: {machine.machine_names}")
+    #         print(f"Tool Count: {len(machine.toolNum)} | Initial Count: {len(machine.toolLife)} | ID: {machine.id} | Machine Names: {machine.machine_name} | POTs: {len(machine.location)}")
     
 ############################## EXPLICIT URL ##############################################
 
@@ -135,20 +142,20 @@ class XMLTagExtractor(QtCore.QObject):
 # # THIS BLOCK IS FOR TESTING PURPOSES
 # if __name__ == "__main__":
 #     extractor = XMLTagExtractor()
-#     address_list = ["http://192.168.1.222:5000/sample-files",
-#                     "http://192.168.1.222:5000/sample-files",
-#                     "http://192.168.1.222:9000/sample-files",
-#                     "http://192.168.1.222:9000/sample-files"]
+#     address_list = ["http://192.168.1.249:5000/sample-files",
+#                     "http://192.168.1.249:5000/sample-files",
+#                     "http://192.168.1.249:9000/sample-files",
+#                     "http://192.168.1.249:9000/sample-files"]
 #     machine_name_list = ["Machine A", "Machine B", "Machine C", "Machine D"]
 #     extractor.fetch_data(address_list, 1, machine_name_list)
     
 # THIS BLOCK IS FOR TESTING PURPOSES
 if __name__ == "__main__":
     extractor = XMLTagExtractor()
-    address_list = ["192.168.1.222",
-                    "192.168.1.222",
-                    "192.168.1.222",
-                    "192.168.1.222"]
+    address_list = ["192.168.1.249",
+                    "192.168.1.249",
+                    "192.168.1.249",
+                    "192.168.1.249"]
     machine_name_list = ["Machine A", "Machine B", "Machine C", "Machine D"]
     extractor.fetch_data(address_list, "5000", 1, machine_name_list)
 

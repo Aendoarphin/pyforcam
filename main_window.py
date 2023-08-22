@@ -37,24 +37,87 @@ class Ui_mainWindow(QtCore.QObject):
         self.loading_animation_running = False
         self.table_percent = 0
         self.sort_mode = QtCore.Qt.SortOrder.AscendingOrder
-        self.sorted_column = 2
+        
+        self.header_tn = 0
+        self.header_m = 1
+        self.header_p = 2
+        self.header_tl = 3
+        self.header_pctf = 4
+        self.header_pct = 5
+        self.header_s = 6
+        self.has_pot = self.ui_settings.has_pot
+        
+        self.sorted_column = self.header_tl
+        
+        self.font = self.ui_settings.font
+        self.fontsize = self.ui_settings.fontsize
+        self.fontweight = self.ui_settings.fontweight
+        self.fontitalics = self.ui_settings.fontitalics
+        self.row_height = 70
         
     def listen(self):
         self.btnSortOrder.setEnabled(False)
         self.comboColumn.setEnabled(False)
-        self.tableView.hideColumn(3)
+        if self.has_pot is True: self.tableView.showColumn(self.header_p)
+        else: self.tableView.hideColumn(self.header_p)
+        self.tableView.hideColumn(self.header_pctf)
         self.ui_settings.check_ip()
         self.extractor.timed_out.connect(lambda message: [self.stop_fetching_data(message)])
         self.actionOptions.triggered.connect(lambda: [self.update_settings_list(), self.open_settings()])
+        self.actionAppearance.triggered.connect(lambda: [self.showFontDialog()])
+        self.actionPOT.triggered.connect(lambda: [self.toggle_pot()])
         self.btnStart.clicked.connect(self.start_fetching_data)
         self.btnStop.clicked.connect(self.stop_fetching_data)
         self.btnSortOrder.clicked.connect(lambda: [self.change_sort_order()])
-        self.comboColumn.currentTextChanged.connect(lambda: [self.change_sort_type()])
+        self.comboColumn.currentIndexChanged.connect(lambda: [self.change_sort_type()])
+    
+    def toggle_pot(self):
+        hidden = self.tableView.isColumnHidden(self.header_p)
+        if hidden:
+            self.tableView.showColumn(self.header_p)
+            self.actionPOT.setChecked(True)
+            self.ui_settings.save_settings(True)
+
+            
+        elif not hidden:
+            self.tableView.hideColumn(self.header_p)
+            self.actionPOT.setChecked(False)
+            self.ui_settings.save_settings(False)
+        
+    
+    def set_app_font(self, family, size, weight, italics=False):
+        for column_index in range(0, 7):
+            header_item = self.tableView.horizontalHeaderItem(column_index)
+            header_item.setFont(QtGui.QFont(family, size, weight, italics))
+                
+            rows = self.tableView.rowCount()
+            cols = self.tableView.columnCount()
+            for row in range(rows):
+                for col in range(cols):
+                    item = self.tableView.item(row, col)
+                    if item:
+                        item.setFont(QtGui.QFont(family, size, weight, italics))
+    
+    def showFontDialog(self):
+        font, ok = QtWidgets.QFontDialog.getFont()
+        if ok:
+            self.font = font.family()
+            self.fontsize = font.pointSize()
+            self.fontweight = font.weight()
+            self.fontitalics = font.italic()
+            self.ui_settings.font = self.font
+            self.ui_settings.fontsize = self.fontsize
+            self.ui_settings.fontweight = self.fontweight
+            self.ui_settings.fontitalics = self.fontitalics
+            self.row_height = self.fontsize + 30
+            self.set_app_font(self.font, self.fontsize, self.fontweight, self.fontitalics)
+            self.ui_settings.save_settings()
+            
         
     def change_sort_order(self):
         selected = self.comboColumn.currentText()
-        if selected == "Tool Life": self.sorted_column = 2
-        elif selected == "Percentage": self.sorted_column = 3
+        if selected == "Tool Life": self.sorted_column = self.header_tl
+        elif selected == "Percentage": self.sorted_column = self.header_pctf
         else: self.sorted_column = 1
         if self.btnSortOrder.text() == "↑":
             self.sort_mode = QtCore.Qt.SortOrder.DescendingOrder
@@ -65,10 +128,10 @@ class Ui_mainWindow(QtCore.QObject):
         self.fetch_data()
         
     def change_sort_type(self):
-        selected = self.comboColumn.currentText()
-        if selected == "Tool Life": self.sorted_column = 2
-        elif selected == "Percentage": self.sorted_column = 3
-        else: self.sorted_column = 1
+        selected = self.comboColumn.currentIndex()
+        if selected == 0: self.sorted_column = self.header_tl
+        elif selected == 1: self.sorted_column = self.header_pctf
+        else: self.sorted_column = self.header_m
         self.fetch_data()
        
     def update_settings_list(self):
@@ -166,89 +229,79 @@ class Ui_mainWindow(QtCore.QObject):
         self.extractor.fetch_data(self.address_list, "5000", 1, self.extractor.machine_names)
         self.machines = self.extractor.machines
         self.data_fetched = True
-        self.update_table(show_yellow=self.ui_settings.yellow)
+        self.update_table(colors_only=self.ui_settings.colors_only)
 
-    def update_table(self, show_yellow=False):
-        machine_count = len(self.machines)
-        if machine_count == 0:
-            self.logger.info("No machines detected")
-            return
+    def update_table(self, colors_only=False):
         self.tableView.setRowCount(0)
         row_index = 0
 
-        for machine_index in range(machine_count):
-            tool_num_list = self.machines[machine_index].toolNum
-            tool_count = len(tool_num_list)
-            tool_life_list = self.machines[machine_index].toolLife
-            initial_list = self.machines[machine_index].initial
+        for machine in self.machines:
+            tool_num_list = machine.toolNum
+            tool_life_list = machine.toolLife
+            initial_list = machine.initial
+            pot_list = machine.location
 
-            for i in range(tool_count):
-                tool_life = tool_life_list[i]
-                initial_life = initial_list[i]
-                if tool_life != 'NULL' and initial_life != 'NULL':
-                    try:
-                        tool_life_int = int(tool_life)
-                        initial_life_int = int(initial_life)
-                        if initial_life_int != 0:
-                            float_percent = tool_life_int / initial_life_int
-                            tn_item = QtWidgets.QTableWidgetItem(tool_num_list[i])
-                            m_item = QtWidgets.QTableWidgetItem(self.machines[machine_index].machine_name)
-                            tl_item = NumericTableWidgetItem(tool_life_list[i])
+            for tool_num, tool_life, initial_life, pot in zip(tool_num_list, tool_life_list, initial_list, pot_list):
+                try:
+                    tool_life_int = int(tool_life)
+                    initial_life_int = int(initial_life)
+                    if initial_life_int == 0:
+                        continue
+                    
+                    float_percent = tool_life_int / initial_life_int
 
-                            self.tableView.insertRow(row_index)
-                            self.tableView.setRowHeight(row_index, 75)
-                            self.tableView.setItem(row_index, 0, tn_item)
-                            self.tableView.setItem(row_index, 1, m_item)
-                            self.tableView.setItem(row_index, 2, tl_item)
+                    tn_item = QtWidgets.QTableWidgetItem(tool_num)
+                    m_item = QtWidgets.QTableWidgetItem(machine.machine_name)
+                    tl_item = NumericTableWidgetItem(tool_life)
+                    pot_item = QtWidgets.QTableWidgetItem(pot)
 
-                            critical = QtGui.QColor(255, 185, 185, 190)
-                            warning = QtGui.QColor(255, 255, 153, 190)
-                            item = QtWidgets.QTableWidgetItem("NULL")
-                            item2 = QtWidgets.QTableWidgetItem("NULL")
-                            percent_item = QtWidgets.QTableWidgetItem()
-                            percent_item.setBackground(critical)
+                    self.tableView.insertRow(row_index)
+                    self.tableView.setRowHeight(row_index, self.row_height)
+                    self.tableView.setItem(row_index, self.header_tn, tn_item)
+                    self.tableView.setItem(row_index, self.header_m, m_item)
+                    self.tableView.setItem(row_index, self.header_tl, tl_item)
+                    self.tableView.setItem(row_index, self.header_p, pot_item)
 
-                            for twi in [tn_item, m_item, tl_item, item, item2, percent_item]:
-                                twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    percent_item = QtWidgets.QTableWidgetItem()
+                    twi_list = [tn_item, m_item, tl_item, pot_item, percent_item]
+                    for twi in twi_list:
+                        twi.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
-                            if float_percent <= 0:
-                                state_item = QtWidgets.QTableWidgetItem("NG")
-                                percent_item.setBackground(critical)
-                            elif float_percent <= self.ui_settings.percentage * 0.01:
-                                state_item = QtWidgets.QTableWidgetItem("OK")
-                                percent_item.setBackground(warning)
-                            else:
-                                state_item = QtWidgets.QTableWidgetItem("OK")
-                                percent_item.setBackground(QtGui.QColor(0, 0, 0, 0))
+                    if float_percent <= 0:
+                        state_item = QtWidgets.QTableWidgetItem("NG")
+                        percent_background = QtGui.QColor(255, 185, 185, 190)
+                    elif float_percent <= self.ui_settings.percentage * 0.01:
+                        state_item = QtWidgets.QTableWidgetItem("OK")
+                        percent_background = QtGui.QColor(255, 255, 153, 190)
+                    else:
+                        state_item = QtWidgets.QTableWidgetItem("OK")
+                        percent_background = QtGui.QColor(0, 0, 0, 0)
+                    if float_percent < 0:
+                        formatted_percent = "0.0"
+                    else: formatted_percent = "{:.2f}".format(float_percent)
+                    item = QtWidgets.QTableWidgetItem(formatted_percent)
+                    state_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    self.tableView.setItem(row_index, self.header_s, state_item)
+                    self.tableView.setItem(row_index, self.header_pctf, item)
 
-                            item.setText("{:.2f}".format(float_percent))
-                            if state_item:
-                                state_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                                self.tableView.setItem(row_index, 5, state_item)
+                    percent_item.setBackground(percent_background)
+                    percent_item.setText("{:.0%}".format(float_percent))
+                    self.tableView.setItem(row_index, self.header_pct, percent_item)
 
-                            self.tableView.setItem(row_index, 3, item)
-                            percent_item.setText("{:.0%}".format(float_percent))
-                            self.tableView.setItem(row_index, 4, percent_item)
+                    if (colors_only and (percent_background == QtGui.QColor(255, 185, 185, 190) or percent_background == QtGui.QColor(255, 255, 153, 190))) or not colors_only:
+                        self.tableView.showRow(row_index)
+                    else:
+                        self.tableView.hideRow(row_index)
 
-                            if show_yellow:
-                                if float_percent < self.ui_settings.percentage * 0.01 and float_percent > 0:
-                                    self.tableView.showRow(row_index)
-                                else:
-                                    self.tableView.hideRow(row_index)
-                            else:
-                                self.tableView.showRow(row_index)
 
-                        row_index += 1
+                    row_index += 1
 
-                    except ValueError:
-                        pass
-                else:
+                except ValueError:
                     pass
 
-        self.tableView.viewport().update()
-        # Tool No. 0, Machine 1, Tool Life 2, % 3
         self.tableView.sortByColumn(self.sorted_column, self.sort_mode)
         self.tableView.setSortingEnabled(False)
+        self.set_app_font(self.font, self.fontsize, self.fontweight, self.fontitalics)
         self.logger.info(f"Table updated | Total IP Addresses: {len(self.address_list)}")
 
     def open_settings(self):
@@ -316,24 +369,25 @@ class Ui_mainWindow(QtCore.QObject):
         self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
         self.tableView.setTextElideMode(QtCore.Qt.TextElideMode.ElideMiddle)
         self.tableView.setShowGrid(True)
-        self.tableView.setColumnCount(6)
+        self.tableView.setColumnCount(7)
         self.tableView.setObjectName("tableView")
         self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
 
         def create_header_item():
             item = QtWidgets.QTableWidgetItem()
-            font = QtGui.QFont("Segoe UI", 20, QtGui.QFont.Weight.DemiBold)
+            font = QtGui.QFont(self.font, self.fontsize, self.fontweight, self.fontitalics)
             font.setBold(True)
             item.setFont(font)
             item.setBackground(QtGui.QColor(165, 191, 218))
             return item
 
-        self.tableView.setHorizontalHeaderItem(0, create_header_item()) # Tool No.
-        self.tableView.setHorizontalHeaderItem(2, create_header_item()) # Machine
-        self.tableView.setHorizontalHeaderItem(3, create_header_item()) # Life remaining
-        self.tableView.setHorizontalHeaderItem(1, create_header_item()) # Percent (hidden)
-        self.tableView.setHorizontalHeaderItem(4, create_header_item()) # Percent (visible)
-        self.tableView.setHorizontalHeaderItem(5, create_header_item()) # State
+        self.tableView.setHorizontalHeaderItem(self.header_tn, create_header_item()) # Tool No.
+        self.tableView.setHorizontalHeaderItem(self.header_m, create_header_item()) # Machine
+        self.tableView.setHorizontalHeaderItem(self.header_p, create_header_item()) # Pot
+        self.tableView.setHorizontalHeaderItem(self.header_tl, create_header_item()) # Tool Life
+        self.tableView.setHorizontalHeaderItem(self.header_pctf, create_header_item()) # Percent (hidden)
+        self.tableView.setHorizontalHeaderItem(self.header_pct, create_header_item()) # Percent (visible)
+        self.tableView.setHorizontalHeaderItem(self.header_s, create_header_item()) # State
 
         item = QtWidgets.QTableWidgetItem()
         font = QtGui.QFont()
@@ -346,13 +400,13 @@ class Ui_mainWindow(QtCore.QObject):
         self.tableView.horizontalHeader().setCascadingSectionResizes(True)
         self.tableView.horizontalHeader().setDefaultSectionSize(215)
         self.tableView.horizontalHeader().setSortIndicatorShown(True)
-        self.tableView.horizontalHeader().setStretchLastSection(True)
+        self.tableView.horizontalHeader().setStretchLastSection(False)
         self.tableView.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.tableView.verticalHeader().setVisible(False)
         self.tableView.verticalHeader().setCascadingSectionResizes(True)
         self.tableView.verticalHeader().setDefaultSectionSize(30)
         self.tableView.verticalHeader().setHighlightSections(True)
-        self.tableView.verticalHeader().setStretchLastSection(True)
+        self.tableView.verticalHeader().setStretchLastSection(False)
         self.gridLayout_2.addWidget(self.tableView, 1, 0, 1, 7)        
         self.btnStart = QtWidgets.QPushButton(parent=self.centralwidget)
         self.btnStart.setMaximumSize(QtCore.QSize(149, 149))
@@ -387,10 +441,14 @@ class Ui_mainWindow(QtCore.QObject):
         self.actionOptions.setObjectName("actionOptions")
         self.actionAppearance = QtGui.QAction(parent=mainWindow)
         self.actionAppearance.setObjectName("actionAppearance")
+        self.actionPOT = QtGui.QAction(parent=mainWindow)
+        self.actionPOT.setCheckable(True)
+        self.actionPOT.setObjectName("actionPOT")
         self.actionExit = QtGui.QAction(parent=mainWindow)
         self.actionExit.setObjectName("actionExit")
         self.menuFile.addAction(self.actionOptions)
         self.menuFile.addAction(self.actionAppearance)
+        self.menuFile.addAction(self.actionPOT)
         self.menuFile.addAction(self.actionExit)
         self.menubar.addAction(self.menuFile.menuAction())
         
@@ -408,22 +466,25 @@ class Ui_mainWindow(QtCore.QObject):
         self.lblLog.setText(_translate("mainWindow", "Log:"))
         self.btnSortOrder.setText(_translate("mainWindow", "↑"))
         self.btnStop.setText(_translate("mainWindow", "Stop"))
-        item = self.tableView.horizontalHeaderItem(0)
+        item = self.tableView.horizontalHeaderItem(self.header_tn)
         item.setText(_translate("mainWindow", "Tool No."))
-        item = self.tableView.horizontalHeaderItem(1)
+        item = self.tableView.horizontalHeaderItem(self.header_m)
         item.setText(_translate("mainWindow", "Machine"))
-        item = self.tableView.horizontalHeaderItem(2)
-        item.setText(_translate("mainWindow", "Life Remaining"))
-        item = self.tableView.horizontalHeaderItem(3)
+        item = self.tableView.horizontalHeaderItem(self.header_p)
+        item.setText(_translate("mainWindow", "POT"))
+        item = self.tableView.horizontalHeaderItem(self.header_tl)
+        item.setText(_translate("mainWindow", "Tool Life"))
+        item = self.tableView.horizontalHeaderItem(self.header_pctf)
         item.setText(_translate("mainWindow", "%"))
-        item = self.tableView.horizontalHeaderItem(4)
+        item = self.tableView.horizontalHeaderItem(self.header_pct)
         item.setText(_translate("mainWindow", "%"))
-        item = self.tableView.horizontalHeaderItem(5)
+        item = self.tableView.horizontalHeaderItem(self.header_s)
         item.setText(_translate("mainWindow", "State"))
         self.btnStart.setText(_translate("mainWindow", "Start"))
         self.menuFile.setTitle(_translate("mainWindow", "File"))
         self.actionOptions.setText(_translate("mainWindow", "Options"))
         self.actionAppearance.setText(_translate("mainWindow", "Appearance"))
+        self.actionPOT.setText(_translate("mainWindow", "POT"))
         self.actionExit.setText(_translate("mainWindow", "Exit"))
 
 def main():
