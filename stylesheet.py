@@ -38,7 +38,7 @@ styles_main = """
     
     QTableWidget {
         font-size: 25pt;
-        font-weight: 550;
+        font-weight: 63;
         background-color: transparent;
         gridline-color: lightgray;
         background-repeat: no-repeat; 

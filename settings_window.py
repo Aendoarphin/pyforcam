@@ -11,13 +11,17 @@ class Ui_Dialog(QtCore.QObject):
         self.host = ""
         self.full_address = ""
         self.ip_list = []
-        self.machine_name = ""
         self.machine_name_list = []
         
-        self.percentage = .3
-        self.interval = 0
-        self.yellow = False
+        self.percentage = 30
+        self.interval =30
+        self.colors_only = False
         self.data = {}
+        self.font = "Segoe UI"
+        self.fontsize = 20
+        self.fontweight = 700
+        self.fontitalics = False
+        self.has_pot = False
         
         self.normal = "background-color: rgb(255,255,255)"
         self.error = "background-color: rgb(255,185,185)"
@@ -27,33 +31,21 @@ class Ui_Dialog(QtCore.QObject):
         self.message = QtWidgets.QMessageBox()
     
     def listen(self, Dialog):
-        self.txtHost.setEnabled(False)
-        self.txtMachineName.setEnabled(False)
         self.load_settings()
-        self.interval = int(self.spinInterval.value())
-        self.percentage = self.spinPercent.value()
-        
-        self.spinInterval.valueChanged.connect(lambda value: self.set_interval(value))
-        self.spinPercent.valueChanged.connect(lambda value: self.set_percentage(value))
-        
-        
-        self.btnSetModular.clicked.connect(lambda: self.enable_network_input())
-
-        self.btnPlus.clicked.connect(lambda: self.update_list(self.btnPlus.text()))
-        self.btnMinus.clicked.connect(lambda: self.update_list(self.btnMinus.text()))
-        self.checkYellow.stateChanged.connect(lambda: self.set_yellow())
-        self.var_info = f"Interval: {self.interval}s\nPercentage:{self.percentage}"
+        self.btnAdd.clicked.connect(lambda: self.validate_inputs())
+        self.btnRemove.clicked.connect(lambda: self.remove_sel())
 
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Apply).clicked.connect(lambda: 
             [
-                self.show_message(), 
-                self.show_message(self.var_info, True), 
                 self.save_settings(), 
-                self.check_ip(), 
+                self.check_ip(),
+                self.show_message(), 
+                self.show_message(self.var_info),
+                self.print_data(),
                 Dialog.accept()
              ])
         
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(lambda:
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Reset).clicked.connect(lambda:
             [
                 self.clear_inputs()
             ])
@@ -69,26 +61,13 @@ class Ui_Dialog(QtCore.QObject):
         self.spinPercent.setValue(30)
         self.spinInterval.setValue(30)
         self.listAddress.clear()
-        self.ip_list.clear()
-        self.machine_name_list.clear()
-        self.checkYellow.setChecked(False)
-    
-    def set_interval(self, value):
-        self.interval = int(value)
-        self.update_display()
-    def set_percentage(self, value):
-        self.percentage = value
-        self.update_display()
-        
-    def set_yellow(self):
-        if self.checkYellow.isChecked(): self.yellow = True
-        else: self.yellow = False
+        self.checkColors.setChecked(False)
         
     def update_display(self):
         self.var_info = f"Interval: {self.interval}s\nPercentage: {self.percentage}"
         
-    def show_message(self, message=None, custom=None):
-        if custom == True:
+    def show_message(self, message=None):
+        if message is not None:
             self.message.setText(message)
         else:
             self.message.setText(f"Link format: http://(ADDRESS):5000/assets\nAddresses: {self.ip_list}")
@@ -96,39 +75,24 @@ class Ui_Dialog(QtCore.QObject):
         self.message.exec()
         
     def update_list(self, mode: str):
-        self.host = self.txtHost.text()
-        self.machine_name = self.txtMachineName.text()
-        self.full_address = self.network + self.host
-        if mode == "+":
-            if self.network != "" and self.host != "" and self.machine_name != "":
-                self.listAddress.addItem(f"IP: {self.full_address}, Machine Name: {self.machine_name}")
-                self.ip_list.append(self.full_address)
-                self.machine_name_list.append(self.machine_name)
-                self.txtHost.clear()
-                self.txtMachineName.clear()
-                self.txtHost.setStyleSheet(self.normal)
+        input_widgets = [self.txtNetwork1, self.txtNetwork2, self.txtNetwork3, self.txtHost, self.txtMachineName]
+        input_values = input_values = [widget.text() for widget in input_widgets]
+        full_address = self.txtNetwork1.text() + "." + self.txtNetwork2.text() + "." + self.txtNetwork3.text() + "." + self.txtHost.text()
+        state = self.normal
+        if mode == "Add":
+            if all(input != "" for input in input_values):
+                self.listAddress.addItem(f"IP: {full_address}, Machine Name: {self.txtMachineName.text()}")
                 self.txtMachineName.setStyleSheet(self.normal)
-                self.print_list()
-                print(f"ADDRESS WAS ADDED: {self.ip_list}")
-                print(f"MACHINE NAME WAS ADDED: {self.machine_name_list}")
-                self.full_address = ""
-                self.host = ""
-                self.machine_name = ""
-            else: 
-                self.txtHost.setStyleSheet(self.error)
-                self.txtMachineName.setStyleSheet(self.error)
-
-        if mode == "-":
-            self.remove_sel()
-            self.print_list()
-            print(f"ITEM REMOVED")
-    
-    def print_list(self):
-        print("\nDATA:\n")
-        for ip in self.ip_list:
-            print(ip)
-        for m in self.machine_name_list:
-            print(m)
+                state = self.normal
+            else:
+                state = self.error
+        for i in input_widgets:
+            i.setStyleSheet(state)
+            
+    def print_data(self):
+        print("DATA:")
+        for ip, m in zip(self.ip_list, self.machine_name_list):
+            print(f"{ip}, {m}")
 
     def remove_sel(self):
         # Retrieve the selected items from the QListWidget
@@ -162,46 +126,51 @@ class Ui_Dialog(QtCore.QObject):
         self.listAddress.clearSelection()
 
         
-    def enable_network_input(self):
-        input_value = [self.txtNetwork1.text(), self.txtNetwork2.text(), self.txtNetwork3.text()]
-        input_obj = [self.txtNetwork1, self.txtNetwork2, self.txtNetwork3]
+    def validate_inputs(self):
+        input_widgets = [self.txtNetwork1, self.txtNetwork2, self.txtNetwork3, self.txtHost, self.txtMachineName]
+        input_values = [widget.text() for widget in input_widgets]
+
         # If any of fields are empty
-        if "" in input_value:
-            for obj in input_obj:
-                obj.setStyleSheet(self.error)
-            if self.txtNetwork1.isEnabled() == True : 
-                self.txtHost.setEnabled(False)
-                self.txtMachineName.setEnabled(False)
-            self.network = ""
-            print(f"NETWORK ADDRESS WAS RESET: {self.network}")
-        elif all(input != "" for input in input_value):
-            if self.btnSetModular.text() == "Change":
-                for obj in input_obj:
-                    obj.setStyleSheet(self.normal)
-                    obj.setEnabled(True)
-                    obj.setText("")
-                self.txtHost.setEnabled(False)
-                self.txtMachineName.setEnabled(False)
-                self.btnSetModular.setText("Set")
-                self.network = ""
-            else:
-                for obj in input_obj:
-                    obj.setStyleSheet(self.normal)
-                    obj.setEnabled(False)
-                self.network = self.txtNetwork1.text() + "." + self.txtNetwork2.text() + "." + self.txtNetwork3.text() + "."
-                self.txtHost.setEnabled(True)
-                self.txtMachineName.setEnabled(True)
-                self.btnSetModular.setText("Change")
-                print(f"NETWORK ADDRESS WAS SET: {self.network}")
+        if "" in input_values:
+            for widget in input_widgets:
+                widget.setStyleSheet(self.error)
+
+        elif all(input != "" for input in input_values):
+            self.update_list(self.btnAdd.text())
     
-    def save_settings(self):
+    def save_settings(self, pot=False):
+        temp_ip_list = []
+        temp_machine_name_list = []
+        self.network = self.txtNetwork1.text() + "." + self.txtNetwork2.text() + "." + self.txtNetwork3.text() + "."
+        for row in range(self.listAddress.count()):
+            list_item = self.listAddress.item(row)
+            item_text = list_item.text()
+            parts = item_text.split(',')
+            ip_part = parts[0].strip()  # "IP: 192.168.1.34"
+            machine_part = parts[1].strip()  # "Machine: MA6"
+            ip = ip_part.split(':')[1].strip()  # "192.168.1.34"
+            machine = machine_part.split(':')[1].strip()  # "MA6"
+            temp_ip_list.append(ip)
+            temp_machine_name_list.append(machine)
+        self.ip_list = temp_ip_list
+        self.machine_name_list = temp_machine_name_list
+        self.percentage = self.spinPercent.value()
+        self.interval = int(self.spinInterval.value())
+        self.colors_only = self.checkColors.isChecked()
+        self.has_pot = pot
+            
         self.data = {
             "network": self.network,
             "ip_list": self.ip_list,
             "percentage": self.percentage,
             "interval": self.interval,
             "machine_name_list": self.machine_name_list,
-            "show_yellow": self.yellow
+            "show_color": self.colors_only,
+            "font": self.font,
+            "font_size": self.fontsize,
+            "font_weight": self.fontweight,
+            "font_italics": self.fontitalics,
+            "has_pot": self.has_pot
         }
         # Create the directory if it doesn't exist
         directory = "./config"
@@ -210,6 +179,8 @@ class Ui_Dialog(QtCore.QObject):
         # Write the data to the file
         with open("./config/settings.json", "w") as f:
             json.dump(self.data, f)
+            
+        self.var_info = f"Interval: {self.spinInterval.text()}\nPercentage: {self.spinPercent.text()}"
 
     def load_settings(self):
         try:
@@ -230,7 +201,7 @@ class Ui_Dialog(QtCore.QObject):
             
             # Populate the QListWidget with items from ip_list and machine_name_list
             for ip, machine_name in zip(self.ip_list, self.machine_name_list):
-                item_text = f"{ip}, Machine Name: {machine_name}"
+                item_text = f"IP: {ip}, Machine Name: {machine_name}"
                 self.listAddress.addItem(item_text)
             
             # Load other settings
@@ -247,16 +218,23 @@ class Ui_Dialog(QtCore.QObject):
             self.interval = self.data.get("interval", self.interval)
             if self.interval != "": self.spinInterval.setValue(self.interval)
                 
-            self.yellow = self.data.get("show_yellow", self.yellow)
-            if self.yellow in [True, False]: self.checkYellow.setChecked(self.yellow)
-            else: self.checkYellow.setChecked(False)
+            self.colors_only = self.data.get("show_color", self.colors_only)
+            if self.colors_only in [True, False]: self.checkColors.setChecked(self.colors_only)
+            else: self.checkColors.setChecked(False)
             
-            current_settings = f"Network:{self.network}\nIP List: {self.ip_list}\nMachine Name List: {self.machine_name_list}\nPercentage: {self.percentage}\nInterval: {self.interval}\nData: {self.data}"
-            self.show_message(current_settings, True)
+            self.font = self.data.get("font", self.font)
+            self.fontsize = self.data.get("font_size", self.fontsize)
+            self.fontweight = self.data.get("font_weight", self.fontweight)
+            self.fontitalics = self.data.get("font_italics", self.fontitalics)
+
+            self.has_pot = self.data.get("has_pot", self.has_pot)
+            
+            current_settings = f"Data: {self.data}"
+            self.show_message(current_settings)
+            print(current_settings)
         except FileNotFoundError:
-            # If settings.json is not found, continue with default values
-            self.show_message("No settings detected. Assign addresses in settings", True)
-            print("Settings file not found. Using default settings.")
+            # self.show_message("No settings detected. Assign addresses in settings", True)
+            print("Settings not found")
                 
     def check_ip(self):
         # Set the flag to check presence of ip addresses
@@ -314,10 +292,10 @@ class Ui_Dialog(QtCore.QObject):
         self.txtNetwork3.setFrame(True)
         self.txtNetwork3.setObjectName("txtNetwork3")
         self.horizontalLayout_8.addWidget(self.txtNetwork3)
-        self.btnSetModular = QtWidgets.QPushButton(parent=Dialog)
-        self.btnSetModular.setMinimumSize(QtCore.QSize(82, 0))
-        self.btnSetModular.setObjectName("btnSetModular")
-        self.horizontalLayout_8.addWidget(self.btnSetModular)
+        self.btnAdd = QtWidgets.QPushButton(parent=Dialog)
+        self.btnAdd.setMinimumSize(QtCore.QSize(82, 0))
+        self.btnAdd.setObjectName("btnAdd")
+        self.horizontalLayout_8.addWidget(self.btnAdd)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_8.addItem(spacerItem)
         self.label = QtWidgets.QLabel(parent=Dialog)
@@ -344,7 +322,7 @@ class Ui_Dialog(QtCore.QObject):
         self.gridLayout.addWidget(self.line, 3, 0, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(parent=Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Orientation.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Apply|QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.StandardButton.Cancel|QtWidgets.QDialogButtonBox.StandardButton.Apply|QtWidgets.QDialogButtonBox.StandardButton.Reset)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 10, 0, 1, 1)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -369,16 +347,10 @@ class Ui_Dialog(QtCore.QObject):
         self.txtMachineName.setObjectName("txtMachineName")
         self.horizontalLayout_9.addWidget(self.txtHost)
         self.horizontalLayout_9.addWidget(self.txtMachineName)
-        self.btnPlus = QtWidgets.QPushButton(parent=Dialog)
-        self.btnPlus.setMinimumSize(QtCore.QSize(38, 0))
-        self.btnPlus.setMaximumSize(QtCore.QSize(38, 16777215))
-        self.btnPlus.setObjectName("btnPlus")
-        self.horizontalLayout_9.addWidget(self.btnPlus)
-        self.btnMinus = QtWidgets.QPushButton(parent=Dialog)
-        self.btnMinus.setMinimumSize(QtCore.QSize(38, 0))
-        self.btnMinus.setMaximumSize(QtCore.QSize(38, 16777215))
-        self.btnMinus.setObjectName("btnMinus")
-        self.horizontalLayout_9.addWidget(self.btnMinus)
+        self.btnRemove = QtWidgets.QPushButton(parent=Dialog)
+        self.btnRemove.setMinimumSize(QtCore.QSize(82, 0))
+        self.btnRemove.setObjectName("btnRemove")
+        self.horizontalLayout_9.addWidget(self.btnRemove)
         spacerItem2 = QtWidgets.QSpacerItem(1, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_9.addItem(spacerItem2)
         self.label_2 = QtWidgets.QLabel(parent=Dialog)
@@ -395,10 +367,10 @@ class Ui_Dialog(QtCore.QObject):
         self.spinInterval.setEnabled(True)
         self.horizontalLayout_9.addWidget(self.spinInterval)
         self.gridLayout.addLayout(self.horizontalLayout_9, 2, 0, 1, 1)
-        self.checkYellow = QtWidgets.QCheckBox(parent=Dialog)
-        self.checkYellow.setText("Show Yellows Only")
-        self.checkYellow.setObjectName("checkYellow")
-        self.gridLayout.addWidget(self.checkYellow, 8, 0, 1, 1)
+        self.checkColors = QtWidgets.QCheckBox(parent=Dialog)
+        self.checkColors.setText("Show Colors Only")
+        self.checkColors.setObjectName("checkColors")
+        self.gridLayout.addWidget(self.checkColors, 8, 0, 1, 1)
         self.listAddress = QtWidgets.QListWidget(parent=Dialog)
         self.listAddress.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.ExtendedSelection)
         self.listAddress.setObjectName("listAddress")
@@ -422,24 +394,18 @@ class Ui_Dialog(QtCore.QObject):
         Dialog.setWindowTitle(_translate("Dialog", "Machine IP Configuration"))
         self.lblNetwork.setText(_translate("Dialog", "Network:"))
         self.txtNetwork1.setToolTip(_translate("Dialog", "<html><head/><body><p>The network address, i.e. <span style=\" font-weight:700;\">192.168.1.</span>HOST</p></body></html>"))
-        self.txtNetwork1.setPlaceholderText(_translate("Dialog", "192"))
         self.dot.setText(_translate("Dialog", "."))
         self.txtNetwork2.setToolTip(_translate("Dialog", "<html><head/><body><p>The network address, i.e. <span style=\" font-weight:700;\">192.168.1.</span>HOST</p></body></html>"))
-        self.txtNetwork2.setPlaceholderText(_translate("Dialog", "168"))
         self.dot2.setText(_translate("Dialog", "."))
         self.txtNetwork3.setToolTip(_translate("Dialog", "<html><head/><body><p>The network address, i.e. <span style=\" font-weight:700;\">192.168.1.</span>HOST</p></body></html>"))
-        self.txtNetwork3.setPlaceholderText(_translate("Dialog", "1"))
-        self.btnSetModular.setText(_translate("Dialog", "Set"))
+        self.btnRemove.setText(_translate("Dialog", "Remove"))
         self.label.setText(_translate("Dialog", "Percentage: "))
         self.spinPercent.setToolTip(_translate("Dialog", "Value determines when color indicator activates"))
         self.spinPercent.setSuffix(_translate("Dialog", " %"))
         self.lblHeading.setText(_translate("Dialog", "Modular"))
         self.lblHost.setText(_translate("Dialog", "Host/Machine Name:"))
         self.txtHost.setToolTip(_translate("Dialog", "<html><head/><body><p>The host, i.e. NETWORK.<span style=\" font-weight:700;\">82</span></p></body></html>"))
-        self.txtHost.setPlaceholderText(_translate("Dialog", "82"))
-        self.txtMachineName.setPlaceholderText(_translate("Dialog", "MA-$"))
-        self.btnPlus.setText(_translate("Dialog", "+"))
-        self.btnMinus.setText(_translate("Dialog", "-"))
+        self.btnAdd.setText(_translate("Dialog", "Add"))
         self.label_2.setText(_translate("Dialog", "Fetch interval: "))
         self.spinInterval.setToolTip(_translate("Dialog", "Value determines time between data requests"))
         self.spinInterval.setSuffix(_translate("Dialog", " s"))
